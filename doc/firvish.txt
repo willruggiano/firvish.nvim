@@ -221,15 +221,21 @@ Deletes the buffers in [range]. If <bang> is given, the command is equivelant to
 OPTIONS                                                        *firvish-options*
 ================================================================================
 
-These options are only enabled if |options.nvim| is installed.
-See https://github.com/Furkanzmc/options.nvim for installation details.
-
 Global ~
 
-alwayspreview                                    *firvish-options-alwayspreview*
+g:firvish_always_preview                              *g:firvish_always_preview*
 
 When set to true, the output of the running job will be shown in
 |previewwindow|. Defaults to `false`.
+
+g:firvish_shell                                                *g:firvish_shell*
+
+When set to true, this shell is used to run the commands instead of |shell|.
+Defaults to NeoVim's |shell| option.
+
+g:firvish_use_default_mappings                  *g:firvish_use_default_mappings*
+
+Defaults to `false`.
 
 MAPPINGS                                                      *firvish-mappings*
 ================================================================================
@@ -242,7 +248,7 @@ Global ~
     <leader>h   Opens the history buffer. Same as |:History|
 
     Note: the leader mappings are available only if you set
-    g:firvish_use_default_mappings to a non 0 value.
+    |g:firvish_use_default_mappings| to a non 0 value.
 
 Buffer-local (filetype=firvish-buffers) ~
     <enter>     Jumps to the buffer under the cursor. If the buffer is visible

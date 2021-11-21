@@ -7,8 +7,7 @@ local M = {}
 
 local utils = require("firvish.utils")
 local notifications = require("firvish.notifications")
-local firvish = require("firvish")
-local options_loaded, options = pcall(require, "options")
+local fopt = require("firvish.options")
 
 local s_jobs = {}
 local s_job_count = 1
@@ -229,8 +228,7 @@ local function on_stdout(job_id, data, name)
 
     if
         s_job_output_preview_bufnr ~= -1
-        and api.nvim_buf_get_var(s_job_output_preview_bufnr, "firvish_job_id")
-            == job_id
+        and api.nvim_buf_get_var(s_job_output_preview_bufnr, "firvish_job_id") == job_id
     then
         vim.fn.appendbufline(s_job_output_preview_bufnr, "$", data)
     end
@@ -266,8 +264,7 @@ local function on_stderr(job_id, data, name)
 
     if
         s_job_output_preview_bufnr ~= -1
-        and api.nvim_buf_get_var(s_job_output_preview_bufnr, "firvish_job_id")
-            == job_id
+        and api.nvim_buf_get_var(s_job_output_preview_bufnr, "firvish_job_id") == job_id
     then
         vim.fn.appendbufline(s_job_output_preview_bufnr, "$", data)
     end
@@ -394,11 +391,7 @@ M.start_job = function(opts)
     end
 
     M.refresh_job_list_window()
-    if
-        (s_job_list_bufnr ~= -1 or s_job_output_preview_bufnr ~= -1)
-        and options_loaded
-        and options.get_option_value("alwayspreview") == true
-    then
+    if (s_job_list_bufnr ~= -1 or s_job_output_preview_bufnr ~= -1) and fopt.always_preview then
         M.preview_job_output(job_id)
     end
 end
@@ -451,7 +444,9 @@ M.preview_job_output = function(job_id)
 
     cmd([["augroup firvish_job_preview"]])
     cmd("autocmd! * <buffer=" .. s_job_output_preview_bufnr .. ">")
-    cmd([[autocmd BufDelete,BufWipeout,WinClosed <buffer> lua require'firvish.job_control'.on_job_output_preview_bufdeleter()]])
+    cmd(
+        [[autocmd BufDelete,BufWipeout,WinClosed <buffer> lua require'firvish.job_control'.on_job_output_preview_bufdeleter()]]
+    )
     cmd([[augroup END]])
 end
 

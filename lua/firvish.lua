@@ -1,27 +1,11 @@
 local vim = vim
 local utils = require("firvish.utils")
-local log = require("firvish.log")
+local fopt = require("firvish.options")
 local M = {}
-
-local options_loaded, options = pcall(require, "options")
-if not options_loaded then
-    log.warning("options.nvim is not installed. See `:help firvish.txt` for disabled features.")
-end
-
-if options_loaded then
-    options.register_option({
-        name = "alwayspreview",
-        type_info = "boolean",
-        description = "When set to true, the output of the running job will be shown in previewwindow.",
-        default = false,
-        source = "firvish",
-        global = true,
-    })
-end
 
 M.open_linedo_buffer = function(line1, line2, source_buffer, cmd, sh_mode)
     local lines = vim.api.nvim_buf_get_lines(source_buffer, line1, line2, true)
-    local shell = vim.api.nvim_get_var("firvish_shell")
+    local shell = fopt.shell
     local extension = "sh"
 
     if sh_mode == false then
@@ -65,7 +49,7 @@ end
 
 M.run_commands = function(bufnr, sh_mode)
     if sh_mode == true then
-        local shell = vim.api.nvim_get_var("firvish_shell")
+        local shell = fopt.shell
         local cmd = { shell }
         if string.match(shell, "powershell") ~= nil or string.match(shell, "pwsh") ~= nil then
             table.insert(cmd, "-NoLogo")
