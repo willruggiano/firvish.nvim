@@ -39,7 +39,7 @@ if fn.executable("rg") == 1 then
             "--block-buffered",
         }
         if args then
-            command = table.extend(command, args)
+            vim.list_extend(command, args)
         end
 
         jobs.start_job({
@@ -55,9 +55,15 @@ if fn.executable("rg") == 1 then
         })
     end
 
-    cmd([[command! -bang -complete=file -nargs=* Rg :lua _G.firvish_run_rg({<f-args>}, "<bang>" == "!")]])
-    cmd([[command! -complete=file -nargs=* Crg :lua _G.firvish_run_rg({<f-args>}, false, true, false)]])
-    cmd([[command! -complete=file -nargs=* Lrg :lua _G.firvish_run_rg({<f-args>}, false, false, true)]])
+    cmd(
+        [[command! -bang -complete=file -nargs=* Rg :lua _G.firvish_run_rg({<f-args>}, "<bang>" == "!")]]
+    )
+    cmd(
+        [[command! -complete=file -nargs=* Crg :lua _G.firvish_run_rg({<f-args>}, false, true, false)]]
+    )
+    cmd(
+        [[command! -complete=file -nargs=* Lrg :lua _G.firvish_run_rg({<f-args>}, false, false, true)]]
+    )
 end
 
 if fn.executable("ugrep") == 1 then
@@ -72,7 +78,7 @@ if fn.executable("ugrep") == 1 then
             "-J1",
         }
         if args then
-            command = table.extend(command, args)
+            vim.list_extend(command, args)
         end
 
         jobs.start_job({
@@ -88,16 +94,22 @@ if fn.executable("ugrep") == 1 then
         })
     end
 
-    cmd([[command! -bang -complete=file -nargs=* Ug :lua _G.firvish_run_ug({<f-args>}, "<bang>" == "!")]])
-    cmd([[command! -complete=file -nargs=* Cug :lua _G.firvish_run_ug({<f-args>}, false, true, false)]])
-    cmd([[command! -complete=file -nargs=* Lug :lua _G.firvish_run_ug({<f-args>}, false, false, true)]])
+    cmd(
+        [[command! -bang -complete=file -nargs=* Ug :lua _G.firvish_run_ug({<f-args>}, "<bang>" == "!")]]
+    )
+    cmd(
+        [[command! -complete=file -nargs=* Cug :lua _G.firvish_run_ug({<f-args>}, false, true, false)]]
+    )
+    cmd(
+        [[command! -complete=file -nargs=* Lug :lua _G.firvish_run_ug({<f-args>}, false, false, true)]]
+    )
 end
 
 if fn.executable("fd") == 1 then
     function _G.firvish_run_fd(args, use_last_buffer, qf, loc)
         local command = { "fd", "--color=never" }
         if args then
-            command = table.extend(command, args)
+            vim.list_extend(command, args)
         end
 
         jobs.start_job({
@@ -113,9 +125,15 @@ if fn.executable("fd") == 1 then
         })
     end
 
-    cmd([[command! -bang -complete=file -nargs=* Fd  :lua _G.firvish_run_fd({<f-args>}, "<bang>" == "!", false, false)]])
-    cmd([[command! -complete=file -nargs=* Cfd :lua _G.firvish_run_fd({<f-args>}, false, true, false)]])
-    cmd([[command! -complete=file -nargs=* Lfd :lua _G.firvish_run_fd({<f-args>}, false, false, true)]])
+    cmd(
+        [[command! -bang -complete=file -nargs=* Fd  :lua _G.firvish_run_fd({<f-args>}, "<bang>" == "!", false, false)]]
+    )
+    cmd(
+        [[command! -complete=file -nargs=* Cfd :lua _G.firvish_run_fd({<f-args>}, false, true, false)]]
+    )
+    cmd(
+        [[command! -complete=file -nargs=* Lfd :lua _G.firvish_run_fd({<f-args>}, false, false, true)]]
+    )
 end
 
 function _G.firvish_call_frun(args, is_background_job, qf, loc)
@@ -132,19 +150,33 @@ function _G.firvish_call_frun(args, is_background_job, qf, loc)
     })
 end
 
-cmd([[command! -bang -complete=file -nargs=* FRun :lua _G.firvish_call_frun({<f-args>}, "<bang>" == "!")]])
-cmd([[command! -complete=file -nargs=* Cfrun :lua _G.firvish_call_frun({<f-args>}, false, true, false)]])
-cmd([[command! -complete=file -nargs=* Lfrun :lua _G.firvish_call_frun({<f-args>}, false, false, true)]])
+cmd(
+    [[command! -bang -complete=file -nargs=* FRun :lua _G.firvish_call_frun({<f-args>}, "<bang>" == "!")]]
+)
+cmd(
+    [[command! -complete=file -nargs=* Cfrun :lua _G.firvish_call_frun({<f-args>}, false, true, false)]]
+)
+cmd(
+    [[command! -complete=file -nargs=* Lfrun :lua _G.firvish_call_frun({<f-args>}, false, false, true)]]
+)
 
-cmd([[command! -nargs=* -complete=shellcmd -bang -range Fhdo lua require'firvish'.open_linedo_buffer(<line1>, <line2>, vim.fn.bufnr(), <q-args>, "<bang>" ~= "!")]])
+cmd(
+    [[command! -nargs=* -complete=shellcmd -bang -range Fhdo lua require'firvish'.open_linedo_buffer(<line1>, <line2>, vim.fn.bufnr(), <q-args>, "<bang>" ~= "!")]]
+)
 
 cmd([[command! -bar FirvishJobs lua require'firvish.job_control'.show_jobs_list()]])
 
-cmd([[command! -bang -nargs=* -range FhFilter :lua require"firvish".filter_lines( <line1>, <line2>, "<bang>" ~= "!", <q-args>)]])
+cmd(
+    [[command! -bang -nargs=* -range FhFilter :lua require"firvish".filter_lines( <line1>, <line2>, "<bang>" ~= "!", <q-args>)]]
+)
 
-cmd([[command! -bang -range FhQf :lua require"firvish".set_buf_lines_to_qf( <line1>, <line2> - 1, "<bang>" == "!", false)]])
+cmd(
+    [[command! -bang -range FhQf :lua require"firvish".set_buf_lines_to_qf( <line1>, <line2> - 1, "<bang>" == "!", false)]]
+)
 
-cmd([[command! -bang -range Fhllist :lua require"firvish".set_buf_lines_to_qf( <line1>, <line2>, "<bang>" == "!", true)]])
+cmd(
+    [[command! -bang -range Fhllist :lua require"firvish".set_buf_lines_to_qf( <line1>, <line2>, "<bang>" == "!", true)]]
+)
 
 cmd([[augroup neovim_firvish_buffer]])
 cmd([[autocmd!]])

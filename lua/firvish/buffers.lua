@@ -1,6 +1,8 @@
 local vim = vim
 local M = {}
+
 local utils = require("firvish.utils")
+local log = require("firvish.log")
 
 local s_open_bufnr = -1
 local s_buffer_list_dirty = true
@@ -57,11 +59,11 @@ local function get_bufnr(linenr)
     end
 
     local buffer_name = string.sub(line, vim.fn.matchstrpos(line, "[A-Za-z]")[2], -1)
-    local buffer_name = vim.fn.trim(buffer_name)
+    buffer_name = vim.fn.trim(buffer_name)
     bufnr = vim.fn.bufnr(buffer_name)
 
     if bufnr == -1 then
-        utils.log_error("Cannot read buffer number from the list.")
+        log.error("Cannot read buffer number from the list.")
         return -1
     end
 

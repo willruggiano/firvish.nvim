@@ -103,7 +103,7 @@ function G.setup_cmake(opts)
 
     functions.run_cmake = function(output_qf, cmake_options)
         local cmd = configure_opts
-        if cmake_options ~= nil then table.extend(cmd, cmake_options) end
+        if cmake_options ~= nil then vim.list_extend(cmd, cmake_options) end
 
         require"firvish.job_control".start_job({
             cmd = cmd,
@@ -118,7 +118,7 @@ function G.setup_cmake(opts)
 
     functions.run_project = function(output_qf, args)
         local cmd = {opts.program}
-        if args ~= nil then table.extend(cmd, args) end
+        if args ~= nil then vim.list_extend(cmd, args) end
 
         require"firvish.job_control".start_job({
             cmd = cmd,

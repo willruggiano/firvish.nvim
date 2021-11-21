@@ -71,12 +71,6 @@ M.is_window_visible = function(tabnr, bufnr)
     return false
 end
 
-M.log_error = function(message)
-    vim.api.nvim_command("echohl ErrorMsg")
-    vim.api.nvim_command('echo "[firvish] ' .. message .. '"')
-    vim.api.nvim_command("echohl Normal")
-end
-
 M.any_of = function(items, predicate)
     for _, value in pairs(items) do
         if predicate(value) == true then
@@ -139,14 +133,6 @@ function M.map(mode, lhs, rhs, opts)
     else
         vim.api.nvim_set_keymap(mode, lhs, rhs, options)
     end
-end
-
-function table.extend(source, target)
-    for _, v in ipairs(target) do
-        table.insert(source, v)
-    end
-
-    return source
 end
 
 return M
