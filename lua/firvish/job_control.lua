@@ -290,11 +290,16 @@ local function on_exit(job_id, exit_code, event)
     end
 
     if job_info.notify then
-        notifications.notify(finished_message, "info", {
+        local opts = {
             plugin = "firvish",
             title = "Firvish Jobs",
-            timeout = 1000,
-        })
+            timeout = 100,
+        }
+        if type(job_info.notify) == "function" then
+            job_info.notify(finished_message, "info", opts)
+        else
+            notifications.notify(finished_message, "info", opts)
+        end
     end
 
     if job_info.listed == true then
