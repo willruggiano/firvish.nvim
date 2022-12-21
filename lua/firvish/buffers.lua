@@ -182,7 +182,9 @@ M.buf_count = function()
 end
 
 M.setup = function(bufnr)
-    vim.api.nvim_buf_set_option(bufnr, "cursorline", true)
+    local winnr = assert(vim.fn.bufwinnr(bufnr), "no window for buffer " .. bufnr)
+
+    -- vim.api.nvim_buf_set_option(winnr, "cursorline", true)
     vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
     vim.api.nvim_buf_set_option(bufnr, "buflisted", true)
     vim.api.nvim_buf_set_option(bufnr, "syntax", "firvish-buffers")
