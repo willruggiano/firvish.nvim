@@ -44,6 +44,8 @@ local preview_mappings = {
 }
 
 M.config = {
+    interactive_window_height = 3,
+    shell = vim.opt.shell:get(),
     keymaps = {
         buffers = {
             n = {
@@ -174,36 +176,36 @@ M.config = {
     },
 }
 
-M.apply_mappings = function(map)
+M.apply_mappings = function(map, bufnr)
     local config = M.config
     for lhs, opts in pairs(config.keymaps[map].n or {}) do
         if opts then
-            nnoremap(lhs, opts[1], { buffer = true, silent = true })
+            nnoremap(lhs, opts[1], { buffer = bufnr, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].i or {}) do
         if opts then
-            inoremap(lhs, opts[1], { buffer = true, silent = true })
+            inoremap(lhs, opts[1], { buffer = bufnr, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].v or {}) do
         if opts then
-            vnoremap(lhs, opts[1], { buffer = true, silent = true })
+            vnoremap(lhs, opts[1], { buffer = bufnr, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].x or {}) do
         if opts then
-            xnoremap(lhs, opts[1], { buffer = true, silent = true })
+            xnoremap(lhs, opts[1], { buffer = bufnr, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].s or {}) do
         if opts then
-            snoremap(lhs, opts[1], { buffer = true, silent = true })
+            snoremap(lhs, opts[1], { buffer = bufnr, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].o or {}) do
         if opts then
-            onoremap(lhs, opts[1], { buffer = true, silent = true })
+            onoremap(lhs, opts[1], { buffer = bufnr, silent = true })
         end
     end
 end

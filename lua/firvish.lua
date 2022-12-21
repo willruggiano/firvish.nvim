@@ -1,6 +1,6 @@
-local vim = vim
 local utils = require "firvish.utils"
 local log = require "firvish.log"
+
 local M = {}
 
 local options_loaded, options = pcall(require, "options")
@@ -59,7 +59,7 @@ end
 
 M.run_commands = function(bufnr, sh_mode)
     if sh_mode == true then
-        local shell = vim.api.nvim_get_var "firvish_shell"
+        local shell = require("firvish.config").config.shell
         local cmd = { shell }
         if string.match(shell, "powershell") ~= nil or string.match(shell, "pwsh") ~= nil then
             table.insert(cmd, "-NoLogo")
@@ -143,6 +143,7 @@ end
 
 M.setup = function(opts)
     require("firvish.config").merge(opts or {})
+    require "firvish.setup"
 end
 
 return M

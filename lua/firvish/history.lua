@@ -1,6 +1,6 @@
-local vim = vim
-local M = {}
 local utils = require "firvish.utils"
+
+local M = {}
 
 local open_bufnr = nil
 
