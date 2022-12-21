@@ -1,16 +1,13 @@
-local utils = require "firvish.utils"
-local map = utils.map
+local keymap = require "firvish.keymap"
 local jobs = require "firvish.job_control"
 local cmd = vim.cmd
 local fn = vim.fn
-local opt_local = vim.opt_local
 local g = vim.g
 local opt = vim.opt
 
 if g.firvish_use_default_mappings ~= nil and g.firvish_use_default_mappings ~= 0 then
-    map("n", "<leader>b", ":lua require'firvish.buffers'.open_buffers()<CR>", { silent = true, nowait = true })
-
-    map("n", "<leader>h", ":lua require'firvish.history'.open_history()<CR>", { silent = true, nowait = true })
+    keymap.nnoremap("<leader>b", require("firvish.buffers").open_buffers)
+    keymap.nnoremap("<leader>h", require("firvish.history").open_history)
 end
 
 cmd [[command! Buffers lua require'firvish.buffers'.open_buffers()<CR>]]
@@ -37,7 +34,7 @@ if fn.executable "rg" == 1 then
             "--block-buffered",
         }
         if args then
-            command = table.extend(command, args)
+            command = vim.list_extend(command, args)
         end
 
         jobs.start_job {
@@ -72,7 +69,7 @@ if fn.executable "ugrep" == 1 then
             "-J1",
         }
         if args then
-            command = table.extend(command, args)
+            command = vim.list_extend(command, args)
         end
 
         jobs.start_job {
@@ -97,7 +94,7 @@ if fn.executable "fd" == 1 then
     function _G.firvish_run_fd(args, use_last_buffer, qf, loc, open)
         local command = { "fd", "--color=never" }
         if args then
-            command = table.extend(command, args)
+            command = vim.list_extend(command, args)
         end
 
         jobs.start_job {

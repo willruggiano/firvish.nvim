@@ -40,19 +40,16 @@ M.open_linedo_buffer = function(line1, line2, source_buffer, cmd, sh_mode)
         command_lines[index] = string.gsub(cmd, "{}", '"' .. line .. '"')
     end
 
-    vim.api.nvim_buf_set_option(".", "modifiable", true)
-    vim.api.nvim_buf_set_option(".", "readonly", false)
-    vim.api.nvim_buf_set_option(".", "buflisted", false)
+    vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
+    vim.api.nvim_buf_set_option(bufnr, "readonly", false)
+    vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
 
     vim.api.nvim_command "setlocal cursorline"
 
-    require("firvish.keymap").nnoremap {
-        "E!",
-        function()
-            vim.cmd "silent write"
-            M.run_commands(vim.fn.bufnr(), sh_mode)
-        end,
-    }
+    require("firvish.keymap").nnoremap("E!", function()
+        vim.cmd "silent write"
+        M.run_commands(vim.fn.bufnr(), sh_mode)
+    end)
 
     utils.set_buf_lines(bufnr, command_lines)
     vim.api.nvim_command "write"

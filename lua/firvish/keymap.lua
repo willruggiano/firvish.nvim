@@ -1,146 +1,88 @@
--- NOTE: (mostly) copied from astronauta.nvim
--- See: https://github.com/neovim/neovim/pull/13823
 local keymap = {}
 
-__FirvishMapStore = __FirvishMapStore or {}
-keymap._store = __FirvishMapStore
-
-keymap._create = function(f)
-    table.insert(keymap._store, f)
-    return #keymap._store
+function keymap.map(modes, lhs, rhs, opts)
+    vim.keymap.set(modes, lhs, rhs, vim.tbl_deep_extend("force", { silent = true, nowait = true }, opts or {}))
 end
 
-keymap._execute = function(id)
-    return keymap._store[id]()
+function keymap.noremap(modes, lhs, rhs, opts)
+    keymap.map(
+        modes,
+        lhs,
+        rhs,
+        vim.tbl_deep_extend("force", { noremap = true, silent = true, nowait = true }, opts or {})
+    )
 end
 
-keymap._expr = function(id)
-    return vim.api.nvim_replace_termcodes(keymap._store[id](), true, true, true)
+function keymap.nmap(lhs, rhs, opts)
+    keymap.map("n", lhs, rhs, opts)
 end
 
-local make_mapper = function(mode, defaults, opts)
-    local args, map_args = {}, {}
-    for k, v in pairs(opts) do
-        if type(k) == "number" then
-            args[k] = v
-        else
-            map_args[k] = v
-        end
-    end
-
-    local lhs = opts.lhs or args[1]
-    local rhs = opts.rhs or args[2]
-    local map_opts = vim.tbl_extend("force", defaults, map_args)
-
-    local mapping
-    if type(rhs) == "string" then
-        mapping = rhs
-    elseif type(rhs) == "function" then
-        local func_id = keymap._create(rhs)
-
-        if map_opts.expr then
-            mapping = string.format([[luaeval("require("firvish.keymap")._expr(%s)")]], func_id)
-        else
-            assert(map_opts.noremap, "If `rhs` is a function and it's not an expr, `opts.noremap` must be true")
-            mapping = string.format([[<cmd>lua require("firvish.keymap")._execute(%s)<CR>]], func_id)
-        end
-    else
-        error("Unexpected type for rhs:" .. tostring(rhs))
-    end
-
-    if not map_opts.buffer then
-        vim.api.nvim_set_keymap(mode, lhs, mapping, map_opts)
-    else
-        -- Clear the buffer after saving it
-        local buffer = map_opts.buffer
-        if buffer == true then
-            buffer = 0
-        end
-
-        map_opts.buffer = nil
-
-        vim.api.nvim_buf_set_keymap(buffer, mode, lhs, mapping, map_opts)
-    end
+function keymap.nnoremap(lhs, rhs, opts)
+    keymap.noremap("n", lhs, rhs, opts)
 end
 
-function keymap.map(opts)
-    return make_mapper("", { noremap = false }, opts)
+function keymap.vmap(lhs, rhs, opts)
+    keymap.map("v", lhs, rhs, opts)
 end
 
-function keymap.noremap(opts)
-    return make_mapper("", { noremap = true }, opts)
+function keymap.vnoremap(lhs, rhs, opts)
+    keymap.noremap("v", lhs, rhs, opts)
 end
 
-function keymap.nmap(opts)
-    return make_mapper("n", { noremap = false }, opts)
+function keymap.xmap(lhs, rhs, opts)
+    keymap.map("x", lhs, rhs, opts)
 end
 
-function keymap.nnoremap(opts)
-    return make_mapper("n", { noremap = true }, opts)
+function keymap.xnoremap(lhs, rhs, opts)
+    keymap.noremap("x", lhs, rhs, opts)
 end
 
-function keymap.vmap(opts)
-    return make_mapper("v", { noremap = false }, opts)
+function keymap.smap(lhs, rhs, opts)
+    keymap.map("s", lhs, rhs, opts)
 end
 
-function keymap.vnoremap(opts)
-    return make_mapper("v", { noremap = true }, opts)
+function keymap.snoremap(lhs, rhs, opts)
+    keymap.noremap("s", lhs, rhs, opts)
 end
 
-function keymap.xmap(opts)
-    return make_mapper("x", { noremap = false }, opts)
+function keymap.omap(lhs, rhs, opts)
+    keymap.map("o", lhs, rhs, opts)
 end
 
-function keymap.xnoremap(opts)
-    return make_mapper("x", { noremap = true }, opts)
+function keymap.onoremap(lhs, rhs, opts)
+    keymap.noremap("o", lhs, rhs, opts)
 end
 
-function keymap.smap(opts)
-    return make_mapper("s", { noremap = false }, opts)
+function keymap.imap(lhs, rhs, opts)
+    keymap.map("i", lhs, rhs, opts)
 end
 
-function keymap.snoremap(opts)
-    return make_mapper("s", { noremap = true }, opts)
+function keymap.inoremap(lhs, rhs, opts)
+    keymap.noremap("i", lhs, rhs, opts)
 end
 
-function keymap.omap(opts)
-    return make_mapper("o", { noremap = false }, opts)
+function keymap.lmap(lhs, rhs, opts)
+    keymap.map("l", lhs, rhs, opts)
 end
 
-function keymap.onoremap(opts)
-    return make_mapper("o", { noremap = true }, opts)
+function keymap.lnoremap(lhs, rhs, opts)
+    keymap.noremap("l", lhs, rhs, opts)
 end
 
-function keymap.imap(opts)
-    return make_mapper("i", { noremap = false }, opts)
+function keymap.cmap(lhs, rhs, opts)
+    keymap.map("c", lhs, rhs, opts)
 end
 
-function keymap.inoremap(opts)
-    return make_mapper("i", { noremap = true }, opts)
+function keymap.cnoremap(lhs, rhs, opts)
+    keymap.noremap("c", lhs, rhs, opts)
 end
 
-function keymap.lmap(opts)
-    return make_mapper("l", { noremap = false }, opts)
+function keymap.tmap(lhs, rhs, opts)
+    keymap.map("t", lhs, rhs, opts)
 end
 
-function keymap.lnoremap(opts)
-    return make_mapper("l", { noremap = true }, opts)
-end
-
-function keymap.cmap(opts)
-    return make_mapper("c", { noremap = false }, opts)
-end
-
-function keymap.cnoremap(opts)
-    return make_mapper("c", { noremap = true }, opts)
-end
-
-function keymap.tmap(opts)
-    return make_mapper("t", { noremap = false }, opts)
-end
-
-function keymap.tnoremap(opts)
-    return make_mapper("t", { noremap = true }, opts)
+function keymap.tnoremap(lhs, rhs, opts)
+    keymap.noremap("t", lhs, rhs, opts)
 end
 
 return keymap

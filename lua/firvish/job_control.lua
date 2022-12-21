@@ -103,6 +103,7 @@ local function check_start_job_args(opts)
     opts.listed = opts.listed or false
     opts.output_qf = opts.output_qf or false
     opts.output_lqf = opts.output_lqf or false
+    opts.show_job_headers = opts.show_job_headers or false
     opts.efm = opts.efm or {}
     opts.notify = opts.notify or false
     if opts.output_qf == 1 then
@@ -283,9 +284,9 @@ local function on_exit(job_id, exit_code, event)
         api.nvim_buf_set_var(job_info.bufnr, "firvish_job_id", -1)
     end
 
-    if job_info.output_qf then
+    if job_info.output_qf and job_info.show_job_headers then
         utils.set_qflist({ "[firvish] " .. finished_message }, "a", job_info.bufnr)
-    elseif job_info.output_lqf then
+    elseif job_info.output_lqf and job_info.show_job_headers then
         utils.set_qflist({ "[firvish] " .. finished_message }, "a", job_info.bufnr, {}, true)
     end
 
@@ -392,11 +393,11 @@ M.start_job = function(opts)
         exit_code = nil,
     }
     s_jobs[job_id] = vim.tbl_extend("keep", job_info, opts)
-    if opts.output_qf then
+    if opts.output_qf and opts.show_job_headers then
         utils.set_qflist({
             "[firvish] Job Started at " .. s_jobs[job_id].start_time,
         }, "a", s_jobs[job_id].bufnr)
-    elseif opts.output_lqf then
+    elseif opts.output_lqf and opts.show_job_headers then
         utils.set_qflist({
             "[firvish] Job Started at " .. s_jobs[job_id].start_time,
         }, "a", s_jobs[job_id].bufnr, {}, true)

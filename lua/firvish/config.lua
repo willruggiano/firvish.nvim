@@ -178,32 +178,32 @@ M.apply_mappings = function(map)
     local config = M.config
     for lhs, opts in pairs(config.keymaps[map].n or {}) do
         if opts then
-            nnoremap { lhs, opts[1], buffer = true, silent = true }
+            nnoremap(lhs, opts[1], { buffer = true, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].i or {}) do
         if opts then
-            inoremap { lhs, opts[1], buffer = true, silent = true }
+            inoremap(lhs, opts[1], { buffer = true, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].v or {}) do
         if opts then
-            vnoremap { lhs, opts[1], buffer = true, silent = true }
+            vnoremap(lhs, opts[1], { buffer = true, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].x or {}) do
         if opts then
-            xnoremap { lhs, opts[1], buffer = true, silent = true }
+            xnoremap(lhs, opts[1], { buffer = true, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].s or {}) do
         if opts then
-            snoremap { lhs, opts[1], buffer = true, silent = true }
+            snoremap(lhs, opts[1], { buffer = true, silent = true })
         end
     end
     for lhs, opts in pairs(config.keymaps[map].o or {}) do
         if opts then
-            onoremap { lhs, opts[1], buffer = true, silent = true }
+            onoremap(lhs, opts[1], { buffer = true, silent = true })
         end
     end
 end
