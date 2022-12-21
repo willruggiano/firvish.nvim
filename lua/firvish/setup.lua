@@ -5,15 +5,15 @@ local opts = require("firvish.config").config
 
 vim.filetype.add {
     filename = {
-        ["firvish://buffers"] = function(_, bufnr)
+        ["firvish-buffers"] = function(_, bufnr)
             require("firvish.buffers").setup(bufnr)
             return "firvish-buffers"
         end,
-        ["firvish://history"] = function(_, bufnr)
+        ["firvish-history"] = function(_, bufnr)
             require("firvish.history").setup(bufnr)
             return "firvish-history"
         end,
-        ["firvish://menu"] = function(_, bufnr)
+        ["firvish-menu"] = function(_, bufnr)
             require("firvish.menu").setup(bufnr)
             return "firvish-menu"
         end,

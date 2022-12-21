@@ -98,7 +98,7 @@ end
 M.bufnr = nil
 M.open_buffers = function()
     if M.bufnr == nil then
-        vim.api.nvim_command "e firvish://buffers"
+        vim.api.nvim_command "e firvish-buffers"
         M.bufnr = vim.fn.bufnr()
     elseif utils.is_window_visible(vim.fn.tabpagenr(), M.bufnr) then
         vim.api.nvim_command(vim.fn.bufwinnr(M.bufnr) .. "wincmd w")
