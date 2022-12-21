@@ -26,8 +26,8 @@ if opts.use_default_mappings then
 end
 
 if opts.create_user_commands then
-    vim.api.nvim_create_user_command("Buffers", require("firvish.buffers").open_buffers)
-    vim.api.nvim_create_user_command("History", require("firvish.history").open_history)
+    vim.api.nvim_create_user_command("Buffers", require("firvish.buffers").open_buffers, {})
+    vim.api.nvim_create_user_command("History", require("firvish.history").open_history, {})
 
     if vim.fn.executable "rg" == 1 then
         local function rg(args, use_last_buffer, qf, loc, open)
