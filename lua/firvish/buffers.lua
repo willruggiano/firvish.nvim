@@ -71,7 +71,9 @@ M.on_buf_delete = function()
     M.bufnr = nil
 end
 
-M.on_buf_enter = M.open_buffers
+M.on_buf_enter = function()
+    M.open_buffers()
+end
 
 M.on_buf_leave = function() end
 
@@ -206,7 +208,7 @@ M.setup = function(bufnr)
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
-            M.on_buf_enter()
+            require("firvish.buffers").on_buf_enter()
         end,
         group = augroup,
     })
@@ -214,7 +216,7 @@ M.setup = function(bufnr)
     vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
         buffer = bufnr,
         callback = function()
-            M.on_buf_delete()
+            require("firvish.buffers").on_buf_delete()
         end,
         group = augroup,
     })
@@ -222,7 +224,7 @@ M.setup = function(bufnr)
     vim.api.nvim_create_autocmd("BufLeave", {
         buffer = bufnr,
         callback = function()
-            M.on_buf_leave()
+            require("firvish.buffers").on_buf_leave()
         end,
         group = augroup,
     })
