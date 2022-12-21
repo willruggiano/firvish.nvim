@@ -3,7 +3,7 @@ local utils = require "firvish.utils"
 local M = {}
 
 M.bufnr = nil
-M.buffer_list_dirty = false
+M.buffer_list_dirty = true
 M.cached_buffers = {}
 
 local function create_buffer_list(predicate)
