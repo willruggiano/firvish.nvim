@@ -205,19 +205,25 @@ M.setup = function(bufnr)
 
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
-        callback = M.on_buf_enter,
+        callback = function()
+            M.on_buf_enter()
+        end,
         group = augroup,
     })
 
     vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
         buffer = bufnr,
-        callback = M.on_buf_delete,
+        callback = function()
+            M.on_buf_delete()
+        end,
         group = augroup,
     })
 
     vim.api.nvim_create_autocmd("BufLeave", {
         buffer = bufnr,
-        callback = M.on_buf_leave,
+        callback = function()
+            M.on_buf_leave()
+        end,
         group = augroup,
     })
 end
