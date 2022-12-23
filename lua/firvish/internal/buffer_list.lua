@@ -26,6 +26,8 @@ function BufferList:remove(buffer)
     return self
 end
 
+---Create a new BufferList using only the buffers which satisfy a given predicate
+---@param f function a predicate which returns `false` to filter out a buffer
 function BufferList:filter(f)
     local copy = BufferList:new()
     for _, buffer in pairs(self.buffers) do

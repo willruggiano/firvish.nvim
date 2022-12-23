@@ -25,7 +25,12 @@ local function should_ignore(buffer)
             return vim.tbl_contains(ignore_buffers.filetype, buffer:get_option "filetype")
                 or vim.tbl_contains(ignore_buffers.filename, buffer:name())
         elseif type(ignore_buffers) == "function" then
-            return ignore_buffers(buffer)
+            local ok, result = pcall(ignore_buffers, buffer)
+            if ok then
+                return result
+            else
+                return false
+            end
         else
             return false
         end
@@ -94,7 +99,14 @@ M.filter_buffers = function(mode)
         end
         M.get_buffer_list_buffer():filter(f)
     elseif type(mode) == "function" then
-        M.get_buffer_list_buffer():filter(mode)
+        M.get_buffer_list_buffer():filter(function(buffer)
+            local ok, result = pcall(mode, buffer)
+            if ok then
+                return result
+            else
+                return false
+            end
+        end)
     else
         assert(false, "Invalid argument: unsupported filter type " .. mode)
     end
