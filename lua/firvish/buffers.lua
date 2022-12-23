@@ -67,6 +67,7 @@ M.delete_buffers = function(line1, line2, force)
 end
 
 M.rename_buffer = function()
+    ---@diagnostic disable-next-line: param-type-mismatch
     local bufname = vim.fn.input "> "
     M.get_buffer_list_buffer():rename_buffer(vim.fn.line ".", bufname)
 end

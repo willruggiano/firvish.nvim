@@ -2,7 +2,6 @@ local vim = vim
 local fn = vim.fn
 local cmd = vim.cmd
 local api = vim.api
-local b = vim.b
 
 local utils = require "firvish.utils"
 local notifications = require "firvish.notifications"
@@ -484,8 +483,8 @@ function M.echo_job_output(job_id, line)
 end
 
 function M.go_back_from_job_output()
-    if b.firvish_job_list_linenr ~= nil then
-        local bufnr = b.firvish_job_list_linenr
+    if vim.b.firvish_job_list_linenr ~= nil then
+        local bufnr = vim.b.firvish_job_list_linenr
         fn.execute "FirvishJobs"
         fn.execute "wincmd P"
         fn.execute("normal " .. bufnr .. "G")
