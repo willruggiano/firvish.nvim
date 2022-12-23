@@ -5,18 +5,9 @@ local opts = require("firvish.config").config
 
 vim.filetype.add {
     filename = {
-        ["firvish-buffers"] = function(_, bufnr)
-            require("firvish.buffers").setup(bufnr)
-            return "firvish-buffers"
-        end,
-        ["firvish-history"] = function(_, bufnr)
-            require("firvish.history").setup(bufnr)
-            return "firvish-history"
-        end,
-        ["firvish-menu"] = function(_, bufnr)
-            require("firvish.menu").setup(bufnr)
-            return "firvish-menu"
-        end,
+        ["firvish-buffers"] = "firvish-buffers",
+        ["firvish-history"] = "firvish-history",
+        ["firvish-menu"] = "firvish-menu",
     },
 }
 
@@ -26,7 +17,7 @@ if opts.use_default_mappings then
 end
 
 if opts.create_user_commands then
-    vim.api.nvim_create_user_command("Buffers", require("firvish.buffers").open_buffers, {})
+    vim.api.nvim_create_user_command("Buffers", require("firvish.buffers").open_buffer_list, {})
     vim.api.nvim_create_user_command("History", require("firvish.history").open_history, {})
 
     if vim.fn.executable "rg" == 1 then
@@ -191,10 +182,16 @@ if opts.create_user_commands then
     vim.api.nvim_create_user_command("Fhll", function(args)
         require("firvish").set_buf_lines_to_qf(args.line1, args.line2, args.bang, true)
     end, { bang = true, range = true })
-
-    local augroup = vim.api.nvim_create_augroup("firvish-buffers", { clear = true })
-    vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout", "BufAdd" }, {
-        callback = require("firvish.buffers").mark_dirty,
-        group = augroup,
-    })
 end
+
+vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
+    callback = function(args)
+        require("firvish.buffers").on_buf_delete(args)
+    end,
+})
+
+vim.api.nvim_create_autocmd("BufAdd", {
+    callback = function(args)
+        require("firvish.buffers").on_buf_add(args)
+    end,
+})

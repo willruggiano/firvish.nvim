@@ -3,12 +3,12 @@ local log = require "firvish.log"
 
 local M = {}
 
-local options_loaded, options = pcall(require, "options")
-if not options_loaded then
+local has_options, options = pcall(require, "options")
+if not has_options then
     log.warning "options.nvim is not installed. See `:help firvish.txt` for disabled features."
 end
 
-if options_loaded then
+if has_options then
     options.register_option {
         name = "alwayspreview",
         type_info = "boolean",
