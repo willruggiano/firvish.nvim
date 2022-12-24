@@ -12,6 +12,7 @@ BufferListBuffer.__index = BufferListBuffer
 function BufferListBuffer:new(buffer_list, on_buf_delete)
     local buffer = Buffer:new(vim.api.nvim_create_buf(false, true), "[Firvish Buffers]")
     buffer:set_option("filetype", "firvish-buffers")
+    buffer:set_option("bufhidden", "wipe")
     buffer:create_autocmd({ "BufDelete", "BufWipeout" }, {
         callback = on_buf_delete,
     })

@@ -165,4 +165,12 @@ function M.sorted_pairs(t)
     return ordered_next, t, nil
 end
 
+function M.now()
+    return os.date "%H:%M:%S"
+end
+
+function M.exit_visual_mode()
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, false, true), "x", true)
+end
+
 return M

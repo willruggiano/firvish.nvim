@@ -7,6 +7,7 @@ vim.filetype.add {
     filename = {
         ["firvish-buffers"] = "firvish-buffers",
         ["firvish-history"] = "firvish-history",
+        ["firvish-jobs"] = "firvish-jobs",
         ["firvish-menu"] = "firvish-menu",
     },
 }
@@ -21,46 +22,41 @@ if opts.create_user_commands then
     vim.api.nvim_create_user_command("History", require("firvish.history").open_history, {})
 
     if vim.fn.executable "rg" == 1 then
-        local function rg(args, use_last_buffer, qf, loc, open)
-            local command = {
-                "rg",
-                "--column",
-                "--line-number",
-                "--no-heading",
-                "--vimgrep",
-                "--color=never",
-                "--smart-case",
-                "--block-buffered",
-            }
-            if args then
-                command = vim.list_extend(command, args)
-            end
+        local function rg(job_opts)
+            local args = vim.list_extend({ "--vimgrep" }, job_opts.args)
 
-            jobs.start_job {
-                cmd = command,
+            require("firvish.job_control2").start_job(vim.tbl_deep_extend("keep", {
+                command = "rg",
+                args = args,
                 filetype = "firvish-dir",
                 title = "rg",
-                use_last_buffer = use_last_buffer,
-                listed = true,
-                efm = { "%f:%l:%c:%m" },
-                output_qf = qf,
-                open_qf = open,
-                output_lqf = loc,
-                open_lqf = open,
-                is_background_job = qf or loc,
-            }
+            }, job_opts))
         end
 
         vim.api.nvim_create_user_command("Rg", function(args)
-            rg(args.fargs, args.bang, false, false, false)
+            rg {
+                args = args.fargs,
+                errorlist = false,
+                bopen = not args.bang,
+            }
         end, { bang = true, nargs = "*", complete = "file" })
 
         vim.api.nvim_create_user_command("Crg", function(args)
-            rg(args.fargs, false, true, false, args.bang)
+            rg {
+                args = args.fargs,
+                errorlist = "quickfix",
+                eopen = args.bang,
+                bopen = false,
+            }
         end, { bang = true, nargs = "*", complete = "file" })
 
         vim.api.nvim_create_user_command("Lrg", function(args)
-            rg(args.fargs, false, false, true, args.bang)
+            rg {
+                args = args.fargs,
+                errorlist = "loclist",
+                eopen = args.bang,
+                bopen = false,
+            }
         end, { bang = true, nargs = "*", complete = "file" })
     end
 

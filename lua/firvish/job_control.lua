@@ -63,7 +63,7 @@ local function create_job_list_item(job_id, job)
 end
 
 local function create_job_list_window(lines, job_list)
-    local bufnr = utils.create_preview_window("Firvish Jobs", lines)
+    local bufnr = utils.create_preview_window("[Firvish Jobs]", lines)
     api.nvim_buf_set_option(bufnr, "filetype", "firvish-job-list")
     api.nvim_buf_set_var(bufnr, "firvish_job_list_additional_lines", job_list)
 
@@ -243,11 +243,6 @@ local function on_stderr(job_id, data, name)
 
     if #data > 1 and data[#data] == "" then
         data[#data] = nil
-    end
-
-    local error_lines = {}
-    for index, error in ipairs(data) do
-        error_lines[index] = "ERROR: " .. error
     end
 
     local job_info = s_jobs[job_id]

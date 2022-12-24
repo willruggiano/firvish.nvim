@@ -41,6 +41,12 @@ function Buffer:create_autocmd(event, opts)
     vim.api.nvim_create_autocmd(event, vim.tbl_deep_extend("force", { buffer = self.bufnr }, opts))
 end
 
+function Buffer:on_buf_delete(f)
+    self:create_autocmd({ "BufDelete", "BufWipeout" }, {
+        callback = f,
+    })
+end
+
 function Buffer:create_user_command(...)
     vim.api.nvim_buf_create_user_command(self.bufnr, ...)
 end
@@ -63,6 +69,10 @@ end
 
 function Buffer:line(linenr)
     return vim.fn.getbufline(self.bufnr, linenr)[1]
+end
+
+function Buffer:append(line)
+    vim.fn.appendbufline(self.bufnr, "$", line)
 end
 
 function Buffer:set_lines(lines)
