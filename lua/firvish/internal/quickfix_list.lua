@@ -17,13 +17,12 @@ end
 function QuickfixList:set(opts)
     vim.fn.setqflist(
         {},
-        "r", -- N.B. Creates a new quickfix list
+        "r", -- N.B. Replaces current quickfix list
         {
             context = self.context,
             lines = opts.lines,
             efm = opts.efm or self.efm,
             title = self.title,
-            -- nr = "$", -- N.B. Adds the new quickfix list at the end of the stack
         }
     )
 end

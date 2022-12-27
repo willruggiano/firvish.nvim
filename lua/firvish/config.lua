@@ -42,6 +42,9 @@ local preview_mappings = {
 }
 
 M.config = {
+    ignore_buffers = {
+        buftype = { "quickfix" },
+    },
     interactive_window_height = 3,
     shell = vim.opt.shell:get(),
     keymaps = {

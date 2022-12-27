@@ -191,3 +191,9 @@ vim.api.nvim_create_autocmd("BufAdd", {
         require("firvish.buffers").on_buf_add(args)
     end,
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+    callback = function(args)
+        require("firvish.buffers").on_filetype(args)
+    end,
+})

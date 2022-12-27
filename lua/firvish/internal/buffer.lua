@@ -21,8 +21,16 @@ function Buffer:listed()
     return self:get_option "buflisted"
 end
 
+function Buffer:loaded()
+    return vim.api.nvim_buf_is_loaded(self.bufnr)
+end
+
 function Buffer:modified()
     return self:get_option "modified"
+end
+
+function Buffer:valid()
+    return vim.api.nvim_buf_is_valid(self.bufnr)
 end
 
 function Buffer:visible()
@@ -30,7 +38,7 @@ function Buffer:visible()
 end
 
 function Buffer:name()
-    return vim.fn.fnamemodify(vim.fn.bufname(self.bufnr), "p:~:.")
+    return vim.fn.fnamemodify(vim.fn.bufname(self.bufnr), ":p:~:.")
 end
 
 function Buffer:filetype()

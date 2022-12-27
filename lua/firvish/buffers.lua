@@ -5,25 +5,45 @@ local BufferList = require "firvish.internal.buffer_list"
 local BufferListBuffer = require "firvish.internal.buffer_list_buffer"
 
 local M = {}
-local buffer_list = BufferList:new()
+local buffer_list = (function()
+    local buffer_list = BufferList:new()
+    -- NOTE: This accounts for initial buffers created during startup
+    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+        local buffer = Buffer:new(bufnr)
+        if buffer:listed() then
+            buffer_list:add(buffer)
+        end
+    end
+    return buffer_list
+end)()
 local buffer_list_buffer = nil
 
 M.get_buffer_list_buffer = function()
     if buffer_list_buffer == nil then
-        buffer_list_buffer = BufferListBuffer:new(buffer_list, function()
+        buffer_list_buffer = BufferListBuffer:new(buffer_list)
+        buffer_list_buffer:on_buf_delete(function()
             buffer_list_buffer = nil
         end)
     end
     return buffer_list_buffer
 end
 
+M.on_buf_add = function(event)
+    local buffer = Buffer:new(event.buf)
+    if buffer:is_same(M.get_buffer_list_buffer().buffer) == false then
+        buffer_list:add(buffer)
+    end
+end
+
 ---@param buffer Buffer
 local function should_ignore(buffer)
-    if config.ignore_buffers ~= nil then
-        local ignore_buffers = config.ignore_buffers
+    local user_config = config.config
+    if user_config.ignore_buffers ~= nil then
+        local ignore_buffers = user_config.ignore_buffers
         if type(ignore_buffers) == "table" then
-            return vim.tbl_contains(ignore_buffers.filetype, buffer:get_option "filetype")
-                or vim.tbl_contains(ignore_buffers.filename, buffer:name())
+            return vim.tbl_contains(ignore_buffers.buftype or {}, buffer:get_option "buftype")
+                or vim.tbl_contains(ignore_buffers.filetype or {}, buffer:filetype())
+                or vim.tbl_contains(ignore_buffers.filename or {}, buffer:name())
         elseif type(ignore_buffers) == "function" then
             local ok, result = pcall(ignore_buffers, buffer)
             if ok then
@@ -39,15 +59,12 @@ local function should_ignore(buffer)
     end
 end
 
----@param buffer Buffer
-local function should_add_buffer(buffer)
-    return buffer:listed() and not buffer:is_same(M.get_buffer_list_buffer().buffer) and not should_ignore(buffer)
-end
-
-M.on_buf_add = function(event)
+M.on_filetype = function(event)
     local buffer = Buffer:new(event.buf)
-    if should_add_buffer(buffer) then
-        buffer_list:add(buffer)
+    local listed = buffer:listed()
+    local ignore = should_ignore(buffer)
+    if not listed or ignore then
+        buffer_list:remove(buffer)
     end
 end
 

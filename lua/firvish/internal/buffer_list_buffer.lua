@@ -9,13 +9,10 @@ local BufferListBuffer = {}
 BufferListBuffer.__index = BufferListBuffer
 
 ---@param buffer_list BufferList
-function BufferListBuffer:new(buffer_list, on_buf_delete)
+function BufferListBuffer:new(buffer_list)
     local buffer = Buffer:new(vim.api.nvim_create_buf(false, true), "[Firvish Buffers]")
     buffer:set_option("filetype", "firvish-buffers")
     buffer:set_option("bufhidden", "wipe")
-    buffer:create_autocmd({ "BufDelete", "BufWipeout" }, {
-        callback = on_buf_delete,
-    })
 
     config.apply_mappings("buffers", buffer)
 
@@ -44,6 +41,10 @@ function BufferListBuffer:setup_()
     self.buffer:create_user_command("Bdelete", function(args)
         self:bdelete(args.line1, args.line2, args.bang)
     end, { bang = true, nargs = "*", range = true })
+end
+
+function BufferListBuffer:on_buf_delete(f)
+    self.buffer:on_buf_delete(f)
 end
 
 function BufferListBuffer:change_to(buffer)
@@ -75,12 +76,18 @@ function BufferListBuffer:open()
     self.buffer:open()
 end
 
+---@param buffer_list BufferList
 function BufferListBuffer:refresh_(buffer_list)
     assert(buffer_list ~= nil, "buffer_list == nil")
     -- NOTE: We must take care to update the state before every call to buf_set_lines()
     -- We depend on the state when, for example, doing a jump_to_buffer()
-    self.state = buffer_list:sorted()
-    self.buffer:set_lines(buffer_list:lines())
+    ---@type BufferList
+    -- local buffer_list2 = buffer_list:filter(function(buffer)
+    --     return buffer:get_option "buftype" ~= "quickfix"
+    -- end)
+    local buffer_list2 = buffer_list
+    self.state = buffer_list2:sorted()
+    self.buffer:set_lines(buffer_list2:lines())
 end
 
 function BufferListBuffer:refresh()

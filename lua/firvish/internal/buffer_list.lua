@@ -6,10 +6,11 @@ local BufferList = {}
 BufferList.__index = BufferList
 
 function BufferList:new()
-    local obj = {
+    local obj = setmetatable({
         buffers = {},
-    }
-    return setmetatable(obj, self)
+    }, self)
+
+    return obj
 end
 
 function BufferList:add(buffer)
@@ -49,8 +50,8 @@ local function make_buffer_line(buffer)
         bufname = "[No Name]"
     end
     line = line .. " " .. bufname
-    local filetype = buffer:filetype()
-    if filetype == "qf" then
+    local buftype = buffer:get_option "buftype"
+    if buftype == "quickfix" then
         line = line .. " (quickfix)"
     end
     return line
@@ -70,6 +71,10 @@ function BufferList:sorted()
         table.insert(buffers, buffer)
     end
     return buffers
+end
+
+function BufferList:len()
+    return #self.buffers
 end
 
 return BufferList
