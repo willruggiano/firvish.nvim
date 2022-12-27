@@ -219,4 +219,8 @@ M.merge = function(opts)
     return config
 end
 
+M.get = function(key)
+    return M.config[key]
+end
+
 return M

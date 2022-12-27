@@ -23,7 +23,7 @@ if opts.create_user_commands then
 
     if vim.fn.executable "rg" == 1 then
         local function rg(job_opts)
-            local args = vim.list_extend({ "--vimgrep" }, job_opts.args)
+            local args = vim.list_extend({ "--color=never", "--vimgrep" }, job_opts.args)
 
             require("firvish.job_control2").start_job(vim.tbl_deep_extend("keep", {
                 command = "rg",
@@ -33,6 +33,9 @@ if opts.create_user_commands then
             }, job_opts))
         end
 
+        -- :Rg[!] <args>
+        -- Runs a grep (using ripgrep) and sends the output to a buffer.
+        -- <bang> causes the grep to be run in the background
         vim.api.nvim_create_user_command("Rg", function(args)
             rg {
                 args = args.fargs,
@@ -41,6 +44,9 @@ if opts.create_user_commands then
             }
         end, { bang = true, nargs = "*", complete = "file" })
 
+        -- :Crg[!] <args>
+        -- Runs a grep (using ripgrep) and outputs the matches to a quickfix list.
+        -- <bang> causes the quickfix list to be opened as soon as the Job completes
         vim.api.nvim_create_user_command("Crg", function(args)
             rg {
                 args = args.fargs,
@@ -50,6 +56,9 @@ if opts.create_user_commands then
             }
         end, { bang = true, nargs = "*", complete = "file" })
 
+        -- :Lrg[!] <args>
+        -- Runs a grep (using ripgrep) and outputs the matches to a location list.
+        -- <bang> causes the location list to be opened as soon as the Job completes
         vim.api.nvim_create_user_command("Lrg", function(args)
             rg {
                 args = args.fargs,
@@ -60,124 +69,113 @@ if opts.create_user_commands then
         end, { bang = true, nargs = "*", complete = "file" })
     end
 
-    if vim.fn.executable "ugrep" == 1 then
-        local function ug(args, use_last_buffer, qf, loc)
-            local command = {
-                "ugrep",
-                "--column-number",
-                "--line-number",
-                "--color=never",
-                "--smart-case",
-                "--line-buffered",
-                "-J1",
-            }
-            if args then
-                command = vim.list_extend(command, args)
-            end
-
-            jobs.start_job {
-                cmd = command,
-                filetype = "firvish-dir",
-                title = "ugrep",
-                use_last_buffer = use_last_buffer,
-                listed = true,
-                output_qf = qf,
-                efm = { "%f:%l:%c:%m" },
-                output_lqf = loc,
-                is_background_job = qf or loc,
-            }
-        end
-
-        vim.api.nvim_create_user_command("Ug", function(args)
-            ug(args.fargs, args.bang, false, false)
-        end, { bang = true, complete = "file", nargs = "*" })
-
-        vim.api.nvim_create_user_command("Cug", function(args)
-            ug(args.fargs, false, false, false)
-        end, { complete = "file", nargs = "*" })
-
-        vim.api.nvim_create_user_command("Lug", function(args)
-            ug(args.fargs, false, false, true)
-        end, { complete = "file", nargs = "*" })
-    end
-
     if vim.fn.executable "fd" == 1 then
-        local function fd(args, use_last_buffer, qf, loc, open)
-            local command = { "fd", "--color=never" }
-            if args then
-                command = vim.list_extend(command, args)
-            end
+        local function fd(job_opts)
+            local args = vim.list_extend({ "--color=never" }, job_opts.args)
 
-            jobs.start_job {
-                cmd = command,
+            require("firvish.job_control2").start_job(vim.tbl_deep_extend("keep", {
+                command = "fd",
+                args = args,
+                efm = "%f",
                 filetype = "firvish-dir",
                 title = "fd",
-                use_last_buffer = use_last_buffer,
-                listed = true,
-                efm = { "%f" },
-                output_qf = qf,
-                open_qf = open,
-                output_lqf = loc,
-                open_lqf = open,
-                is_background_job = qf or loc,
-            }
+            }, job_opts))
         end
 
+        -- :Fd[!] <args>
+        -- Runs a find (using fd) and sends the output to a buffer.
+        -- <bang> causes the find to be run in the background
         vim.api.nvim_create_user_command("Fd", function(args)
-            fd(args.fargs, args.bang, false, false, false)
+            fd {
+                args = args.fargs,
+                errorlist = false,
+                bopen = not args.bang,
+            }
         end, { bang = true, complete = "file", nargs = "*" })
 
+        -- :Cfd[!] <args>
+        -- Runs a find (using fd) and outputs the matches to a quickfix list.
+        -- <bang> causes the quickfix list to be opened as soon as the Job completes
         vim.api.nvim_create_user_command("Cfd", function(args)
-            fd(args.fargs, false, true, false, args.bang)
+            fd {
+                args = args.fargs,
+                errorlist = "quickfix",
+                eopen = args.bang,
+                bopen = false,
+            }
         end, { bang = true, complete = "file", nargs = "*" })
 
+        -- :Lfd[!] <args>
+        -- Runs a find (using fd) and outputs the matches to a location list.
+        -- <bang> causes the location list to be opened as soon as the Job completes
         vim.api.nvim_create_user_command("Lfd", function(args)
-            fd(args.fargs, false, false, true, args.bang)
+            fd {
+                args = args.fargs,
+                errorlist = "loclist",
+                eopen = args.bang,
+                bopen = false,
+            }
         end, { bang = true, complete = "file", nargs = "*" })
     end
 
-    local function frun(args, is_background_job, qf, loc)
-        jobs.start_job {
-            cmd = args,
+    local function frun(fargs, job_opts)
+        require("firvish.job_control2").start_job(vim.tbl_deep_extend("keep", {
+            command = fargs[1],
+            args = vim.list_slice(fargs, 2, #fargs),
             filetype = "firvish-job",
             title = "job",
-            use_last_buffer = false,
-            listed = true,
-            output_qf = qf,
-            output_lqf = loc,
-            is_background_job = qf or loc or is_background_job,
-        }
+        }, job_opts))
     end
 
-    vim.api.nvim_create_user_command("FRun", function(args)
-        frun(args.fargs, args.bang, false, false)
+    -- :Frun[!] <args>
+    -- Runs a command and sends the output to a buffer.
+    -- <bang> causes the command to run in the background.
+    vim.api.nvim_create_user_command("Frun", function(args)
+        frun(args.fargs, {
+            errorlist = false,
+            bopen = not args.bang,
+        })
     end, { bang = true, complete = "file", nargs = "*" })
 
+    -- :Cfrun[!] <args>
+    -- Runs a command and sends the command output to a quickfix list.
+    -- <bang> causes the quickfix list to be opened as soon as the Job completes.
     vim.api.nvim_create_user_command("Cfrun", function(args)
-        frun(args.fargs, false, true, false)
-    end, { complete = "file", nargs = "*" })
+        frun(args.fargs, {
+            errorlist = "quickfix",
+            eopen = args.bang,
+            bopen = false,
+        })
+    end, { bang = true, nargs = "*" })
 
+    -- :Lfrun[!] <args>
+    -- Runs a command and sends the command output to a location list.
+    -- <bang> causes the location list to be opened as soon as the Job completes.
     vim.api.nvim_create_user_command("Lfrun", function(args)
-        frun(args.fargs, false, false, true)
-    end, { complete = "file", nargs = "*" })
+        frun {
+            errorlist = "loclist",
+            eopen = args.bang,
+            bopen = false,
+        }
+    end, { bang = true, nargs = "*" })
 
     vim.api.nvim_create_user_command("Fhdo", function(args)
-        require("firvish").open_linedo_buffer(args.line1, args.line2, vim.fn.bufnr(), args.fargs, args.bang == false)
+        require("firvish").open_linedo_buffer(args.line1, args.line2, vim.fn.bufnr(), args.args, args.bang == false)
     end, { complete = "file", nargs = "*" })
 
-    vim.api.nvim_create_user_command("FirvishJobs", require("firvish.job_control").show_jobs_list, { bar = true })
+    vim.api.nvim_create_user_command("FirvishJobs", require("firvish.job_control2").open, { bar = true })
 
     vim.api.nvim_create_user_command("Fhfilter", function(args)
-        require("firvish").filter_lines(args.line1, args.line2, args.bang == false, args.fargs)
-    end, { bang = true, nargs = "*", range = true })
+        require("firvish").filter_lines(args.line1, args.line2, args.bang == false, args.args)
+    end, { bang = true, bar = true, nargs = "*", range = true })
 
     vim.api.nvim_create_user_command("Fhqf", function(args)
-        require("firvish").set_buf_lines_to_qf(args.line1, args.line2, args.bang, false)
-    end, { bang = true, range = true })
+        require("firvish").send_buf_lines_to_qf(args.line1 - 1, args.line2, args.bang, "quickfix")
+    end, { bang = true, bar = true, range = true })
 
     vim.api.nvim_create_user_command("Fhll", function(args)
-        require("firvish").set_buf_lines_to_qf(args.line1, args.line2, args.bang, true)
-    end, { bang = true, range = true })
+        require("firvish").send_buf_lines_to_qf(args.line1 - 1, args.line2, args.bang, "loclist")
+    end, { bang = true, bar = true, range = true })
 end
 
 vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {

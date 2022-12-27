@@ -1,5 +1,3 @@
-local utils = require "firvish.utils"
-
 local Handle = require "plenary.job"
 
 ---@class Job
@@ -78,11 +76,11 @@ function Job:end_time()
     end
 end
 
----@param error_list QuickfixList
+---Add the Job output to an errorlist (quickfix or loclist).
+---@param error_list ErrorList
 function Job:add_to_error_list(error_list)
     error_list:set {
         lines = self:lines(),
-        efm = self.errorformat,
     }
 end
 

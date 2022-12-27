@@ -1,5 +1,4 @@
-local Buffer = require "firvish.internal.buffer"
-local QuickfixList = require "firvish.internal.quickfix_list"
+local ErrorList = require "firvish.internal.error_list"
 
 ---@class JobOutputBuffer
 ---@field buffer Buffer
@@ -20,10 +19,10 @@ end
 
 function JobOutputBuffer:new_()
     self.buffer:set_keymap("n", "gq", function()
-        local error_list = QuickfixList:new {
+        local error_list = ErrorList:new("quickfix", {
             context = {},
             title = self.buffer:name(),
-        }
+        })
         self.job:add_to_error_list(error_list)
         error_list:open()
     end, { desc = "Send job output to quickfix list", noremap = true, silent = true })

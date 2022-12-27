@@ -79,6 +79,17 @@ function Buffer:line(linenr)
     return vim.fn.getbufline(self.bufnr, linenr)[1]
 end
 
+---@param start number?
+---@param end_ number?
+---@param strict_indexing boolean?
+function Buffer:lines(start, end_, strict_indexing)
+    start = (start == nil) and 0 or start
+    end_ = (end_ == nil) and -1 or end_
+    strict_indexing = (strict_indexing == nil) and true or strict_indexing
+    ---@diagnostic disable-next-line: param-type-mismatch
+    return vim.api.nvim_buf_get_lines(self.bufnr, start, end_, strict_indexing)
+end
+
 function Buffer:append(line)
     vim.fn.appendbufline(self.bufnr, "$", line)
 end

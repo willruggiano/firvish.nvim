@@ -6,7 +6,7 @@ local JobList = require "firvish.internal.job_list"
 local JobListBuffer = require "firvish.internal.job_list_buffer"
 local JobOutputBuffer = require "firvish.internal.job_output_buffer"
 local JobPreview = require "firvish.internal.job_preview"
-local QuickfixList = require "firvish.internal.quickfix_list"
+local ErrorList = require "firvish.internal.error_list"
 
 local M = {}
 local job_list = JobList:new()
@@ -69,16 +69,20 @@ M.start_job = function(args)
                 buffer:set_lines { bufname .. " started at " .. utils.now() }
             end)
         end,
+        ---@param self Job
         on_exit = function(self)
             vim.schedule(function()
                 buffer:append(bufname .. " ended at " .. utils.now())
                 if args.errorlist then
-                    local error_list = QuickfixList:new {
+                    local error_list = ErrorList:new(args.errorlist, {
                         context = {},
+                        efm = args.efm,
                         title = "[Firvish Job " .. job_idx .. "]",
-                    }
+                    })
                     self:add_to_error_list(error_list)
-                    error_list:open()
+                    if args.eopen then
+                        error_list:open()
+                    end
                 end
             end)
             pcall(args.on_exit, self)
