@@ -48,31 +48,55 @@ M.go_back_from_job_output = function()
     not_implemented()
 end
 
+local default_bopen_opts = {
+    headers = true,
+    how = "edit",
+}
+
 M.start_job = function(args)
+    local bopen_opts = vim.tbl_extend("force", default_bopen_opts, type(args.bopen) == "table" and args.bopen or {})
     local is_background_job = (function()
         -- Even if args.errorlist is given, we use bopen to signify whether the job should run in
         -- the background. You could say `:Crg ...` which would open the job output buffer *and*
         -- write the results to a quickfix list.
+        if type(args.bopen) == "table" then
+            return false
+        end
+
         return args.bopen == false
     end)()
 
     local job_idx = job_list:count() + 1
     local bufname = "[Firvish Job " .. job_idx .. "]"
     local buffer = Buffer:new(vim.api.nvim_create_buf(true, true), bufname)
+    if args.filetype ~= nil then
+        buffer:set_option("filetype", args.filetype)
+    end
+
+    buffer:create_autocmd({ "BufEnter", "BufWinEnter" }, {
+        callback = function()
+            ---@diagnostic disable-next-line: invisible
+            buffer:set_lines_()
+        end,
+    })
 
     local job_opts = {
         command = args.command,
         args = args.args or {},
         cwd = args.cwd or vim.fn.getcwd(),
         on_start = function()
-            vim.schedule(function()
-                buffer:set_lines { bufname .. " started at " .. utils.now() }
-            end)
+            if bopen_opts.headers then
+                vim.schedule(function()
+                    buffer:set_lines { bufname .. " started at " .. utils.now() }
+                end)
+            end
         end,
         ---@param self Job
         on_exit = function(self)
             vim.schedule(function()
-                buffer:append(bufname .. " ended at " .. utils.now())
+                if bopen_opts.headers then
+                    buffer:append(bufname .. " ended at " .. utils.now())
+                end
                 if args.errorlist then
                     local error_list = ErrorList:new(args.errorlist, {
                         context = {},
@@ -89,15 +113,19 @@ M.start_job = function(args)
         end,
         ---@diagnostic disable-next-line: unused-local
         on_stdout = function(self, data)
-            vim.schedule(function()
-                buffer:append(data)
-            end)
+            if args.no_stdout ~= true then
+                vim.schedule(function()
+                    buffer:append(data)
+                end)
+            end
         end,
         ---@diagnostic disable-next-line: unused-local
         on_stderr = function(self, data)
-            vim.schedule(function()
-                buffer:append(data)
-            end)
+            if args.no_stderr ~= true then
+                vim.schedule(function()
+                    buffer:append(data)
+                end)
+            end
         end,
     }
     local job = Job:new(job_opts)
@@ -115,7 +143,7 @@ M.start_job = function(args)
     job_previews[job_idx] = job_preview
 
     if is_background_job == false then
-        buffer:open()
+        buffer:open(bopen_opts.how)
     end
 
     return job

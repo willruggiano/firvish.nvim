@@ -2,6 +2,7 @@ local utils = require "firvish.utils"
 
 ---@class Buffer
 ---@field bufnr number
+---@field lines string[]
 local Buffer = {}
 Buffer.__index = Buffer
 
@@ -12,6 +13,7 @@ function Buffer:new(bufnr, name)
 
     local obj = {
         bufnr = bufnr,
+        lines = {},
     }
 
     return setmetatable(obj, self)
@@ -43,6 +45,10 @@ end
 
 function Buffer:filetype()
     return self:get_option "filetype"
+end
+
+function Buffer:winnr()
+    return vim.fn.bufwinnr(self.bufnr)
 end
 
 function Buffer:create_autocmd(event, opts)
@@ -91,18 +97,37 @@ function Buffer:lines(start, end_, strict_indexing)
 end
 
 function Buffer:append(line)
-    vim.fn.appendbufline(self.bufnr, "$", line)
+    table.insert(self.lines, line)
+    self:set_lines_()
 end
 
 function Buffer:set_lines(lines)
-    vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
+    self.lines = lines
+    self:set_lines_()
 end
 
-function Buffer:open()
-    if utils.is_window_visible(vim.fn.tabpagenr(), self.bufnr) then
-        vim.api.nvim_command(vim.fn.bufwinnr(self.bufnr) .. "wincmd w")
+---@private
+function Buffer:set_lines_()
+    vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, self.lines)
+end
+
+---@param how string Any full (unabbreviated) buffer opening command, e.g. `:edit`, `:split`, `:vert pedit`, etc.
+function Buffer:open(how)
+    local winnr = self:winnr()
+    if winnr ~= -1 then
+        vim.api.nvim_command(winnr .. "wincmd w")
     else
+        if how ~= nil and how ~= "edit" then
+            if string.match(how, "pedit") then
+                vim.api.nvim_command(how .. " " .. self:name())
+                vim.api.nvim_command(self:winnr() .. "wincmd w")
+                return self
+            else
+                vim.api.nvim_command(how)
+            end
+        end
         vim.api.nvim_command("buffer " .. self.bufnr)
+        return self
     end
 end
 
@@ -111,7 +136,9 @@ function Buffer:set_keymap(mode, lhs, rhs, opts)
 end
 
 function Buffer:bufdo(cmd)
-    vim.api.nvim_command(cmd)
+    vim.api.nvim_buf_call(self.bufnr, function()
+        vim.api.nvim_command(cmd)
+    end)
     return self
 end
 
