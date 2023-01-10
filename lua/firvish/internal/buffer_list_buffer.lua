@@ -1,4 +1,3 @@
-local config = require "firvish.config"
 local Buffer = require "firvish.internal.buffer"
 
 ---@class BufferListBuffer
@@ -14,7 +13,7 @@ function BufferListBuffer:new(buffer_list)
     buffer:set_option("filetype", "firvish-buffers")
     buffer:set_option("bufhidden", "wipe")
 
-    config.apply_mappings("buffers", buffer)
+    require("firvish.features.buffers").setup_buffer_list_buffer(buffer)
 
     local obj = setmetatable({
         buffer = buffer,
@@ -72,8 +71,8 @@ function BufferListBuffer:buffer_at(linenr)
     return self.state[linenr]
 end
 
-function BufferListBuffer:open()
-    self.buffer:open()
+function BufferListBuffer:open(how)
+    self.buffer:open(how)
 end
 
 ---@param buffer_list BufferList

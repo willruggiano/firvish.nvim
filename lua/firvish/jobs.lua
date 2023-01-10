@@ -17,8 +17,8 @@ local function not_implemented()
     assert(false, "not implemented")
 end
 
-M.open = function()
-    vim.api.nvim_command [[pedit +lua\ require("firvish.job_control2").on_open() firvish://jobs]]
+M.open_job_list = function()
+    vim.api.nvim_command [[pedit +lua\ require("firvish.jobs").on_open() firvish-jobs]]
 end
 
 local job_list_buffer

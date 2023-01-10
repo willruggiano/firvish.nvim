@@ -1,10 +1,15 @@
-local config = require "firvish.config"
+---@mod firvish.buffers Buffers
+---@brief [[
+---Lua API for interacting with the |firvish-buffers| list.
+---@brief ]]
 
+local config = require "firvish.config"
 local Buffer = require "firvish.internal.buffer"
 local BufferList = require "firvish.internal.buffer_list"
 local BufferListBuffer = require "firvish.internal.buffer_list_buffer"
 
-local M = {}
+local buffers = {}
+
 local buffer_list = (function()
     local buffer_list = BufferList:new()
     -- NOTE: This accounts for initial buffers created during startup
@@ -18,7 +23,7 @@ local buffer_list = (function()
 end)()
 local buffer_list_buffer = nil
 
-M.get_buffer_list_buffer = function()
+function buffers.get_buffer_list_buffer()
     if buffer_list_buffer == nil then
         buffer_list_buffer = BufferListBuffer:new(buffer_list)
         buffer_list_buffer:on_buf_delete(function()
@@ -28,13 +33,15 @@ M.get_buffer_list_buffer = function()
     return buffer_list_buffer
 end
 
-M.on_buf_add = function(event)
+---@private
+function buffers.on_buf_add(event)
     local buffer = Buffer:new(event.buf)
-    if buffer:is_same(M.get_buffer_list_buffer().buffer) == false then
+    if buffer:is_same(buffers.get_buffer_list_buffer().buffer) == false then
         buffer_list:add(buffer)
     end
 end
 
+---@private
 ---@param buffer Buffer
 local function should_ignore(buffer)
     local user_config = config.config
@@ -59,7 +66,8 @@ local function should_ignore(buffer)
     end
 end
 
-M.on_filetype = function(event)
+---@private
+function buffers.on_filetype(event)
     local buffer = Buffer:new(event.buf)
     local listed = buffer:listed()
     local ignore = should_ignore(buffer)
@@ -68,55 +76,56 @@ M.on_filetype = function(event)
     end
 end
 
-M.on_buf_delete = function(event)
+---@private
+function buffers.on_buf_delete(event)
     buffer_list:remove(event.buf)
 end
 
-M.open_buffer_list = function()
-    M.get_buffer_list_buffer():open()
+function buffers.open_buffer_list(how)
+    buffers.get_buffer_list_buffer():open(how)
 end
 
-M.jump_to_buffer = function()
-    M.get_buffer_list_buffer():jump_to_buffer(vim.fn.line ".")
+function buffers.jump_to_buffer()
+    buffers.get_buffer_list_buffer():jump_to_buffer(vim.fn.line ".")
 end
 
-M.refresh_buffers = function()
-    M.get_buffer_list_buffer():refresh()
+function buffers.refresh_buffers()
+    buffers.get_buffer_list_buffer():refresh()
 end
 
-M.delete_buffers = function(line1, line2, force)
-    M.get_buffer_list_buffer():bdelete(line1, line2, force)
+function buffers.delete_buffers(line1, line2, force)
+    buffers.get_buffer_list_buffer():bdelete(line1, line2, force)
 end
 
-M.rename_buffer = function()
+function buffers.rename_buffer()
     ---@diagnostic disable-next-line: param-type-mismatch
     local bufname = vim.fn.input "> "
-    M.get_buffer_list_buffer():rename_buffer(vim.fn.line ".", bufname)
+    buffers.get_buffer_list_buffer():rename_buffer(vim.fn.line ".", bufname)
 end
 
-M.filter_buffers = function(mode)
+function buffers.filter_buffers(mode)
     if mode == "modified" then
         local function f(buffer)
             return buffer:modified()
         end
-        M.get_buffer_list_buffer():filter(f)
+        buffers.get_buffer_list_buffer():filter(f)
     elseif mode == "current_tab" then
         local function f(buffer)
             return buffer:visible()
         end
-        M.get_buffer_list_buffer():filter(f)
+        buffers.get_buffer_list_buffer():filter(f)
     elseif mode == "args" then
         local argv = vim.fn.argv()
-        local buffers = {}
+        local buffers_ = {}
         for _, arg in ipairs(argv) do
-            buffers[vim.fn.bufnr(arg)] = true
+            buffers_[vim.fn.bufnr(arg)] = true
         end
         local function f(buffer)
-            return buffers[buffer.bufnr] == true
+            return buffers_[buffer.bufnr] == true
         end
-        M.get_buffer_list_buffer():filter(f)
+        buffers_.get_buffer_list_buffer():filter(f)
     elseif type(mode) == "function" then
-        M.get_buffer_list_buffer():filter(function(buffer)
+        buffers.get_buffer_list_buffer():filter(function(buffer)
             local ok, result = pcall(mode, buffer)
             if ok then
                 return result
@@ -129,4 +138,4 @@ M.filter_buffers = function(mode)
     end
 end
 
-return M
+return buffers

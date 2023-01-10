@@ -1,4 +1,16 @@
-local M = {}
+---@mod firvish.config Configuration
+---@brief [[
+---firvish.nvim is split up into "features". See |firvish.features| for an exhaustive list.
+---@brief ]]
+
+local config = {}
+
+---@package
+---@param opts table
+function config.setup(opts)
+    config.config = vim.tbl_deep_extend("force", config.config, opts)
+    return config.config
+end
 
 local preview_mappings = {
     n = {
@@ -41,53 +53,14 @@ local preview_mappings = {
     },
 }
 
-M.config = {
+config.config = {
+    features = true,
     ignore_buffers = {
         buftype = { "quickfix" },
     },
     interactive_window_height = 3,
     shell = vim.opt.shell:get(),
     keymaps = {
-        buffers = {
-            n = {
-                ["<enter>"] = {
-                    function()
-                        require("firvish.buffers").jump_to_buffer()
-                    end,
-                    { desc = "[firvish] Jump to buffer" },
-                },
-                ["-"] = {
-                    function()
-                        vim.cmd "edit firvish://menu"
-                    end,
-                    { desc = "[firvish] Menu" },
-                },
-                ["za"] = {
-                    function()
-                        require("firvish.buffers").filter_buffers "args"
-                    end,
-                    { desc = "[firvish] Filter buffers (argv)" },
-                },
-                ["zm"] = {
-                    function()
-                        require("firvish.buffers").filter_buffers "modified"
-                    end,
-                    { desc = "[firvish] Filter buffers (modified)" },
-                },
-                ["zv"] = {
-                    function()
-                        require("firvish.buffers").filter_buffers "current_tab"
-                    end,
-                    { desc = "[firvish] Filter buffers (visible)" },
-                },
-                ["R"] = {
-                    function()
-                        require("firvish.buffers").rename_buffer()
-                    end,
-                    { desc = "[firvish] Rename buffer" },
-                },
-            },
-        },
         dir = preview_mappings,
         history = {
             n = {
@@ -124,7 +97,7 @@ M.config = {
                     function()
                         local line = vim.fn.line "."
                         local lines = vim.api.nvim_buf_get_var(0, "firvish_job_list_additional_lines")
-                        require("firvish.job_control").preview_job_output(lines[line].job_id)
+                        require("firvish.jobs").preview_job_output(lines[line].job_id)
                     end,
                     { desc = "[firvish] Preview job output" },
                 },
@@ -139,7 +112,7 @@ M.config = {
                     function()
                         local line = vim.fn.line "."
                         local lines = vim.b.firvish_job_list_additional_lines
-                        require("firvish.job_control").echo_job_output(
+                        require("firvish.jobs").echo_job_output(
                             lines[line].job_id,
                             math.max(vim.v.count, 1) * -1
                         )
@@ -150,19 +123,19 @@ M.config = {
                     function()
                         local line = vim.fn.line "."
                         local lines = vim.api.nvim_buf_get_var(0, "firvish_job_list_additional_lines")
-                        require("firvish.job_control").preview_job_output(lines[line].job_id)
+                        require("firvish.jobs").preview_job_output(lines[line].job_id)
                     end,
                     { desc = "[firvish] Preview job output" },
                 },
                 ["R"] = {
                     function()
-                        require("firvish.job_control").refresh_job_list_window()
+                        require("firvish.jobs").refresh_job_list_window()
                     end,
                     { desc = "[firvish] Refresh" },
                 },
                 ["S"] = {
                     function()
-                        require("firvish.job_control").stop_job()
+                        require("firvish.jobs").stop_job()
                     end,
                     { desc = "[firvish] Stop job" },
                 },
@@ -172,7 +145,7 @@ M.config = {
             n = {
                 ["gb"] = {
                     function()
-                        require("firvish.job_control").go_back_from_job_output()
+                        require("firvish.jobs").go_back_from_job_output()
                     end,
                     { desc = "[firvish] Go back to job list" },
                 },
@@ -199,10 +172,11 @@ M.config = {
 
 local default_opts = { noremap = true, silent = true }
 
+---@package
 ---@param buffer Buffer
-M.apply_mappings = function(key, buffer)
-    local config = M.config
-    for mode, mappings in pairs(config.keymaps[key]) do
+config.apply_mappings = function(key, buffer)
+    local config_ = config.config
+    for mode, mappings in pairs(config_.keymaps[key]) do
         for lhs, map in pairs(mappings or {}) do
             if map then
                 local rhs = type(map) == "table" and map[1] or map
@@ -213,14 +187,9 @@ M.apply_mappings = function(key, buffer)
     end
 end
 
-M.merge = function(opts)
-    local config = M.config
-    M.config = vim.tbl_deep_extend("force", config, opts)
-    return config
+---@package
+config.get = function(key)
+    return config.config[key]
 end
 
-M.get = function(key)
-    return M.config[key]
-end
-
-return M
+return config

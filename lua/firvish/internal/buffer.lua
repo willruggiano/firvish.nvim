@@ -101,6 +101,10 @@ function Buffer:append(line)
     self:set_lines_()
 end
 
+function Buffer:get_lines(start, end_, strict)
+    return vim.api.nvim_buf_get_lines(self.bufnr, start, end_, strict)
+end
+
 function Buffer:set_lines(lines)
     self.lines = lines
     self:set_lines_()
@@ -133,6 +137,19 @@ end
 
 function Buffer:set_keymap(mode, lhs, rhs, opts)
     vim.keymap.set(mode, lhs, rhs, vim.tbl_deep_extend("force", { buffer = self.bufnr }, opts))
+end
+
+local default_opts = { noremap = true, silent = true }
+function Buffer:apply_keymaps(modemaps)
+    for mode, mappings in pairs(modemaps) do
+        for lhs, map in pairs(mappings) do
+            if map then
+                local rhs = type(map) == "table" and map[1] or map
+                local opts = type(map) == "table" and map[2] or {}
+                self:set_keymap(mode, lhs, rhs, vim.tbl_deep_extend("force", default_opts, opts or {}))
+            end
+        end
+    end
 end
 
 function Buffer:bufdo(cmd)
