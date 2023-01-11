@@ -6,7 +6,8 @@ local JobList = require "firvish.internal.job_list"
 local JobListBuffer = require "firvish.internal.job_list_buffer"
 local JobOutputBuffer = require "firvish.internal.job_output_buffer"
 local JobPreview = require "firvish.internal.job_preview"
-local ErrorList = require "firvish.internal.error_list"
+
+local lib = require "firvish.lib"
 
 local M = {}
 local job_list = JobList:new()
@@ -24,7 +25,7 @@ end
 local job_list_buffer
 
 M.on_open = function()
-    job_list_buffer = job_list_buffer or Buffer:new(vim.fn.bufnr(), "[Firvish Job List]")
+    job_list_buffer = job_list_buffer or Buffer:new(vim.api.nvim_get_current_buf(), "[Firvish Job List]")
     local j = JobListBuffer:open(job_list_buffer, job_list, job_previews)
     job_list_buffer:on_buf_delete(function()
         job_list_buffer = nil
@@ -67,8 +68,8 @@ M.start_job = function(args)
     end)()
 
     local job_idx = job_list:count() + 1
-    local bufname = "[Firvish Job " .. job_idx .. "]"
-    local buffer = Buffer:new(vim.api.nvim_create_buf(true, true), bufname)
+    local title = "[Firvish Job " .. job_idx .. "]"
+    local buffer = Buffer:new(vim.api.nvim_create_buf(true, true), title)
     if args.filetype ~= nil then
         buffer:set_option("filetype", args.filetype)
     end
@@ -87,7 +88,7 @@ M.start_job = function(args)
         on_start = function()
             if bopen_opts.headers then
                 vim.schedule(function()
-                    buffer:set_lines { bufname .. " started at " .. utils.now() }
+                    buffer:set_lines { title .. " started at " .. utils.now() }
                 end)
             end
         end,
@@ -95,15 +96,14 @@ M.start_job = function(args)
         on_exit = function(self)
             vim.schedule(function()
                 if bopen_opts.headers then
-                    buffer:append(bufname .. " ended at " .. utils.now())
+                    buffer:append(title .. " ended at " .. utils.now())
                 end
                 if args.errorlist then
-                    local error_list = ErrorList:new(args.errorlist, {
+                    local error_list = lib.errorlist.from_job_output(args.errorlist, self, {
                         context = {},
                         efm = args.efm,
-                        title = "[Firvish Job " .. job_idx .. "]",
+                        title = title,
                     })
-                    self:add_to_error_list(error_list)
                     if args.eopen then
                         error_list:open()
                     end

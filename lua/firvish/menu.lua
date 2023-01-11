@@ -72,7 +72,7 @@ function M.open()
 
     if vim.fn.bufexists(s_open_bufnr) == 0 then
         vim.api.nvim_command "e firvish://menu"
-        s_open_bufnr = vim.fn.bufnr()
+        s_open_bufnr = vim.api.nvim_get_current_buf()
 
         M.refresh_menu()
     elseif utils.is_window_visible(tabnr, s_open_bufnr) then

@@ -48,11 +48,11 @@ end
 
 history.open_history = function()
     local tabnr = vim.fn.tabpagenr()
-    previous_bufnr = vim.fn.bufnr()
+    previous_bufnr = vim.api.nvim_get_current_buf()
 
     if open_bufnr == nil then
         vim.api.nvim_command "e firvish-history"
-        open_bufnr = vim.fn.bufnr()
+        open_bufnr = vim.api.nvim_get_current_buf()
         history.refresh_history()
     elseif utils.is_window_visible(tabnr, open_bufnr) then
         vim.api.nvim_command(vim.fn.bufwinnr(open_bufnr) .. "wincmd w")

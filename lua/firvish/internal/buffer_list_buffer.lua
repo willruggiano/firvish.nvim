@@ -13,8 +13,6 @@ function BufferListBuffer:new(buffer_list)
     buffer:set_option("filetype", "firvish-buffers")
     buffer:set_option("bufhidden", "wipe")
 
-    require("firvish.features.buffers").setup_buffer_list_buffer(buffer)
-
     local obj = setmetatable({
         buffer = buffer,
         buffer_list = buffer_list,

@@ -76,12 +76,4 @@ function Job:end_time()
     end
 end
 
----Add the Job output to an errorlist (quickfix or loclist).
----@param error_list ErrorList
-function Job:add_to_error_list(error_list)
-    error_list:set {
-        lines = self:lines(),
-    }
-end
-
 return Job

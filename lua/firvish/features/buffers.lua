@@ -28,9 +28,14 @@
 ---require("firvish").setup {
 ---    features = {
 ---        buffers = {
+---            behavior = {
+---                open = "edit",
+---                bang_open = "vsplit",
+---            },
+---            filter = buf_listed + (buf_buftype_not { "quickfix" }) + (buf_filetype_not { "firvish-buffers" }),
 ---            keymaps = {
 ---                n = {
----                    ["<enter>"] = {
+---                    ["<CR>"] = {
 ---                        function()
 ---                            require("firvish.buffers").jump_to_buffer()
 ---                        end,
@@ -77,12 +82,21 @@
 
 local buffers = {}
 
+local default_excluded_filetypes = { "firvish-buffers", "firvish-dir", "firvish-jobs" }
+local default_excluded_buftypes = { "quickfix" }
+local filters = require "firvish.lib.filters.buffer"
+
 buffers.config = {
-    open = "edit",
-    bang_open = "vsplit",
+    behavior = {
+        open = "edit",
+        bang_open = "vsplit",
+    },
+    filter = filters.buf_listed - filters.buf_buftype(default_excluded_buftypes) - filters.buf_filetype(
+        default_excluded_filetypes
+    ),
     keymaps = {
         n = {
-            ["<enter>"] = {
+            ["<CR>"] = {
                 function()
                     require("firvish.buffers").jump_to_buffer()
                 end,
@@ -122,39 +136,25 @@ buffers.config = {
     },
 }
 
+local filename = "firvish://buffers"
+
 ---@package
 function buffers.setup(opts)
     buffers.config = vim.tbl_deep_extend("force", buffers.config, opts or {})
 
+    vim.filetype.add {
+        filename = {
+            ["firvish://buffers"] = "firvish-buffers",
+        },
+    }
+
     vim.api.nvim_create_user_command("Buffers", function(args)
-        ---@diagnostic disable-next-line: redundant-parameter
-        require("firvish.buffers").open_buffer_list(args.bang and buffers.config.bang_open or buffers.config.open)
+        if args.bang then
+            vim.cmd(buffers.config.behavior.bang_open .. " " .. filename)
+        else
+            vim.cmd(buffers.config.behavior.open .. " " .. filename)
+        end
     end, { bang = true })
-
-    vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
-        callback = function(args)
-            require("firvish.buffers").on_buf_delete(args)
-        end,
-    })
-
-    vim.api.nvim_create_autocmd("BufAdd", {
-        callback = function(args)
-            require("firvish.buffers").on_buf_add(args)
-        end,
-    })
-
-    vim.api.nvim_create_autocmd("FileType", {
-        pattern = "firvish-buffers",
-        callback = function(args)
-            require("firvish.buffers").on_filetype(args)
-        end,
-    })
-end
-
----@package
----@param buffer Buffer
-function buffers.setup_buffer_list_buffer(buffer)
-    buffer:apply_keymaps(buffers.config.keymaps)
 end
 
 return buffers

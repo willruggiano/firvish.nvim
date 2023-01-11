@@ -1,120 +1,65 @@
 ---@mod firvish.fh Fh
----@tag :Fhdo
----@tag :Fhfilter
----@tag :Fhq
----@tag :Fhl
 ---@brief [[
----Fh stuff
+---The "fh" feature provides several commands that ... ???
 ---@brief ]]
 
-local config = require "firvish.config"
-local Buffer = require "firvish.internal.buffer"
+---@tag :Fhdo
+---@brief [[
+---:[range]Fhdo[!] {cmd}
+---    Generates a script with {cmd} applied to [range] and the respective filepath
+---    inserted wherever {} appears in {cmd}. If bang ! is given, the resulting script is a vim
+---    script, otherwise it is a shell script.
+---
+---    For example, to rename a list of visual-selected files: >
+---        :'<,'>Fhdo mv {} {}-copy.txt
+---<    Run the script with |E!| or `:!%`
+---@brief ]]
+---@see vim.opt.shell
+
+local lib = require "firvish.lib"
 
 local fh = {}
+
+fh.config = {
+    open = "split",
+    keymaps = {
+        n = {
+            ["Z!"] = {
+                function()
+                    vim.cmd "silent write"
+                    lib.fhdo.exec(vim.api.nvim_get_current_buf())
+                end,
+                { desc = "[firvish] Execute script" },
+            },
+        },
+    },
+}
+
+local function make_range(args)
+    local line1 = args.line1
+    local line2 = args.line2
+    if line1 == line2 then
+        line1 = 0
+        line2 = -1
+    end
+    return line1, line2
+end
 
 ---@package
 function fh.setup()
     vim.api.nvim_create_user_command("Fhdo", function(args)
-        fh.do_(args.line1, args.line2, vim.fn.bufnr(), args.fargs, args.bang == false)
-    end, { complete = "file", nargs = "*" })
-
-    vim.api.nvim_create_user_command("Fhfilter", function(args)
-        fh.filter(args.line1, args.line2, args.bang == false, args.args)
-    end, { bang = true, bar = true, nargs = "*", range = true })
-
-    vim.api.nvim_create_user_command("Fhq", function(args)
-        fh.send_to_errorlist(args.line1 - 1, args.line2, args.bang, "quickfix")
-    end, { bang = true, bar = true, range = true })
-
-    vim.api.nvim_create_user_command("Fhl", function(args)
-        fh.send_to_errorlist(args.line1 - 1, args.line2, args.bang, "loclist")
-    end, { bang = true, bar = true, range = true })
-end
-
-function fh.filter(line1, line2, bang, args)
-    --
-end
-
-function fh.send_to_errorlist(line1, line2, bang, errorlist)
-    --
-end
-
-local function fhdo(buffer, sh_mode)
-    if sh_mode == true then
-        ---@type string
-        ---@diagnostic disable-next-line: assign-type-mismatch
-        local shell = config.get "shell"
-        local args = {}
-        if string.match(shell, "powershell") ~= nil or string.match(shell, "pwsh") ~= nil then
-            table.insert(args, "-NoLogo")
-            table.insert(args, "-NonInteractive")
-            table.insert(args, "-NoProfile")
-            table.insert(args, "-ExecutionPolicy")
-            table.insert(args, "RemoteSigned")
-            table.insert(args, "-File")
-        end
-
-        table.insert(args, vim.fn.expand "%")
-        require("firvish.jobs").start_job {
-            command = { shell },
-            args = args,
-            filetype = "firvish-job",
-            title = "fhdo",
+        local line1, line2 = make_range(args)
+        lib.fhdo.generate {
+            source = vim.api.nvim_get_current_buf(),
+            command = args.args,
+            open = fh.config.open,
+            range = { line1, line2 },
+            script = {
+                keymaps = fh.config.keymaps,
+                vim = args.bang,
+            },
         }
-        vim.api.nvim_command("bwipeout! " .. buffer.bufnr)
-    else
-        local lines = buffer:get_lines(0, -1, false)
-        vim.api.nvim_command "wincmd p"
-        vim.api.nvim_command("bwipeout! " .. buffer.bufnr)
-
-        for _, line in pairs(lines) do
-            vim.api.nvim_command(line)
-        end
-    end
-end
-
-function fh.do_(line1, line2, source_buffer, cmd, sh_mode)
-    if type(source_buffer) == "number" then
-        source_buffer = Buffer:new(source_buffer)
-    end
-
-    local lines = source_buffer:lines(line1 - 1, line2)
-    ---@type string
-    ---@diagnostic disable-next-line: assign-type-mismatch
-    local shell = config.get "shell"
-    local extension = "sh"
-
-    if sh_mode == false then
-        extension = "vim"
-    elseif string.match(shell, "powershell") ~= nil or string.match(shell, "pwsh") ~= nil then
-        extension = "ps1"
-    elseif string.match(shell, "cmd") ~= nil then
-        extension = "bat"
-    end
-
-    vim.api.nvim_command("silent split " .. vim.fn.tempname() .. "." .. extension)
-    local buffer = Buffer:new(vim.fn.bufnr())
-
-    local command_lines = {}
-    for index, line in pairs(lines) do
-        command_lines[index] = string.gsub(cmd, "{}", '"' .. line .. '"')
-    end
-
-    buffer:set_option("buflisted", false)
-    buffer:set_option("modifiable", true)
-    buffer:set_option("readonly", false)
-
-    vim.cmd "setlocal cursorline"
-
-    buffer:set_keymap("n", "E!", function()
-        vim.cmd "silent write"
-        fhdo(buffer, sh_mode)
-    end, { noremap = true, silent = true })
-
-    buffer:set_lines(command_lines)
-    vim.cmd "silent write"
-
-    return buffer
+    end, { bang = true, complete = "file", nargs = "*", range = true })
 end
 
 return fh

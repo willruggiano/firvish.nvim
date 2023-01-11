@@ -3,7 +3,6 @@
 ---Lua API for interacting with the |firvish-buffers| list.
 ---@brief ]]
 
-local config = require "firvish.config"
 local Buffer = require "firvish.internal.buffer"
 local BufferList = require "firvish.internal.buffer_list"
 local BufferListBuffer = require "firvish.internal.buffer_list_buffer"
@@ -42,38 +41,13 @@ function buffers.on_buf_add(event)
 end
 
 ---@private
----@param buffer Buffer
-local function should_ignore(buffer)
-    local user_config = config.config
-    if user_config.ignore_buffers ~= nil then
-        local ignore_buffers = user_config.ignore_buffers
-        if type(ignore_buffers) == "table" then
-            return vim.tbl_contains(ignore_buffers.buftype or {}, buffer:get_option "buftype")
-                or vim.tbl_contains(ignore_buffers.filetype or {}, buffer:filetype())
-                or vim.tbl_contains(ignore_buffers.filename or {}, buffer:name())
-        elseif type(ignore_buffers) == "function" then
-            local ok, result = pcall(ignore_buffers, buffer)
-            if ok then
-                return result
-            else
-                return false
-            end
-        else
-            return false
-        end
-    else
-        return false
-    end
-end
-
----@private
 function buffers.on_filetype(event)
-    local buffer = Buffer:new(event.buf)
-    local listed = buffer:listed()
-    local ignore = should_ignore(buffer)
-    if not listed or ignore then
-        buffer_list:remove(buffer)
-    end
+    -- local buffer = Buffer:new(event.buf)
+    -- local listed = buffer:listed()
+    -- local ignore = should_ignore(buffer)
+    -- if not listed or ignore then
+    --     buffer_list:remove(buffer)
+    -- end
 end
 
 ---@private
@@ -81,8 +55,10 @@ function buffers.on_buf_delete(event)
     buffer_list:remove(event.buf)
 end
 
-function buffers.open_buffer_list(how)
-    buffers.get_buffer_list_buffer():open(how)
+function buffers.open_buffer_list(opts)
+    local buffer = buffers.get_buffer_list_buffer()
+    buffer:open(opts.how)
+    return buffer
 end
 
 function buffers.jump_to_buffer()
@@ -109,7 +85,7 @@ function buffers.filter_buffers(mode)
             return buffer:modified()
         end
         buffers.get_buffer_list_buffer():filter(f)
-    elseif mode == "current_tab" then
+    elseif mode == "visible" then
         local function f(buffer)
             return buffer:visible()
         end

@@ -3,7 +3,7 @@ local M = {}
 
 M.open_firvish_buffer = function(title, filetype, options)
     vim.api.nvim_command("edit " .. title)
-    local bufnr = vim.fn.bufnr()
+    local bufnr = vim.api.nvim_get_current_buf()
 
     vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
     vim.api.nvim_buf_set_option(bufnr, "readonly", false)
@@ -93,36 +93,6 @@ M.merge_table = function(target, source)
     end
 
     return target
-end
-
-M.set_qflist = function(lines, action, bufnr, extra_efm, use_loclist)
-    local result, efm = pcall(vim.api.nvim_get_option, "errorformat")
-    if efm == nil then
-        efm = ""
-    end
-
-    extra_efm = extra_efm or {}
-    local local_efm = nil
-    if bufnr ~= nil then
-        result, local_efm = pcall(vim.api.nvim_buf_get_option, bufnr, "errorformat")
-    end
-
-    if efm ~= "" and local_efm ~= nil then
-        efm = efm .. "," .. local_efm
-    elseif local_efm ~= nil then
-        efm = local_efm
-    end
-
-    efm = efm .. "," .. table.concat(extra_efm, ",")
-
-    local parsed_entries = vim.fn.getqflist { lines = lines, efm = efm }
-    if parsed_entries.items then
-        if use_loclist then
-            vim.fn.setloclist(bufnr, parsed_entries.items, action)
-        else
-            vim.fn.setqflist(parsed_entries.items, action)
-        end
-    end
 end
 
 function M.wrap(f0, f1)

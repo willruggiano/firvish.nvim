@@ -79,16 +79,24 @@ function ErrorList:set_(...)
 end
 
 local openers = {
-    quickfix = function()
-        vim.cmd "botright cwindow"
+    quickfix = function(how)
+        if type(how) == "string" then
+            vim.cmd(how)
+        else
+            vim.cmd "botright cwindow"
+        end
     end,
-    loclist = function()
-        vim.cmd "botright lwindow"
+    loclist = function(how)
+        if type(how) == "string" then
+            vim.cmd(how)
+        else
+            vim.cmd "botright lwindow"
+        end
     end,
 }
 
-function ErrorList:open()
-    openers[self.errorlist]()
+function ErrorList:open(how)
+    openers[self.errorlist](how)
 end
 
 local closers = {

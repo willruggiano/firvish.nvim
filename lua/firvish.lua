@@ -16,21 +16,13 @@
 ---commands. Firvish does NOT create keymappings except in Firvish specific buffers (e.g. |firvish-buffers|).
 ---
 ---These are the currently available features:
----  * buffers - creates a |:Buffers| command which opens the buffer list
----  * fh - creates several commands (|:Fhdo|, |:Fhfilter|, |:Fhq| and |:Fhl|) which allow you to
----    interact with a buffer displaying files (see: |firvish-dir|)
----  * find - creates three commands (|:Fd|, |:Cfd| and |:Lfd|) that captures the output of running
----    `fd` in a dedicated buffer (see: |firvish-dir|), the quickfix list or the location list
----    respectively. Requires `fd` (https://github.com/sharkdp/fd) to be installed
----  * frun - creates three commands (|:Frun|, |:Cfrun| and |:Lfrun|) that captures the output of an
----    arbitrary command in a dedicate buffer (see: |firvish-job|), the quickfix list or the location
----    list respectively
----  * grep - creates three commands (|:Rg|, |:Crg| and |:Lrg|) that captures the output of running
----    `rg` in a dedicated buffer (see: |firvish-dir|), the quickfix list or the location list
----    respectively. Requires `rg` (https://github.com/BurntSushi/ripgrep) to be installed
----  * history - creates a |:History| command which shows recently opened files in a dedicated
----    buffer (see: |firvish-dir|)
----  * jobs - creates a |:FirvishJobs| command which shows jobs started via Firvish's jobs module.
+---  * buffers - see |firvish.features.buffers|
+---  * fh - see |firvish.features.fh|
+---  * find - see |firvish.features.find|
+---  * frun - see |firvish.features.frun|
+---  * grep - see |firvish.features.grep|
+---  * history - see |firvish.features.history|
+---  * jobs - see |firvish.features.jobs|
 ---
 ---Features can be enabled or disabled individually through |firvish.setup|:
 ---
@@ -47,7 +39,7 @@
 ---
 --->
 ---require("firvish").setup {
----  features = true,
+---  features = true, -- Enables all features
 ---}
 ---<
 ---
@@ -66,8 +58,8 @@ local firvish = {}
 
 local features = { "buffers", "fh", "find", "frun", "grep", "history", "jobs" }
 
-local function enable(features, feature)
-    return features == true or features[feature] == true or type(features[feature]) == "table"
+local function enable(feats, feature)
+    return feats == true or feats[feature] == true or type(feats[feature]) == "table"
 end
 
 ---Configure the plugin by calling the `setup()` function
@@ -78,7 +70,11 @@ function firvish.setup(opts)
     if opts.features then
         for _, feature in ipairs(features) do
             if enable(opts.features, feature) then
-                require("firvish.features." .. feature).setup(opts.features[feature])
+                if type(opts.features) == "table" then
+                    require("firvish.features." .. feature).setup(opts.features[feature])
+                else
+                    require("firvish.features." .. feature).setup()
+                end
             end
         end
     end

@@ -1,5 +1,3 @@
-local utils = require "firvish.utils"
-
 ---@class Buffer
 ---@field bufnr number
 ---@field lines string[]
@@ -39,8 +37,8 @@ function Buffer:visible()
     return vim.fn.bufwinnr(self.bufnr) ~= -1
 end
 
-function Buffer:name()
-    return vim.fn.fnamemodify(vim.fn.bufname(self.bufnr), ":p:~:.")
+function Buffer:name(mods)
+    return vim.fn.fnamemodify(vim.fn.bufname(self.bufnr), mods or ":p:~:.")
 end
 
 function Buffer:filetype()
@@ -73,6 +71,12 @@ function Buffer:set_option(key, value)
     vim.api.nvim_buf_set_option(self.bufnr, key, value)
 end
 
+function Buffer:set_options(options)
+    for k, v in pairs(options) do
+        self:set_option(k, v)
+    end
+end
+
 function Buffer:is_same(other)
     if type(other) == "number" then
         return self.bufnr == other
@@ -88,7 +92,8 @@ end
 ---@param start number?
 ---@param end_ number?
 ---@param strict_indexing boolean?
-function Buffer:lines(start, end_, strict_indexing)
+---@see vim.api.nvim_buf_get_lines
+function Buffer:get_lines(start, end_, strict_indexing)
     start = (start == nil) and 0 or start
     end_ = (end_ == nil) and -1 or end_
     strict_indexing = (strict_indexing == nil) and true or strict_indexing
@@ -101,10 +106,6 @@ function Buffer:append(line)
     self:set_lines_()
 end
 
-function Buffer:get_lines(start, end_, strict)
-    return vim.api.nvim_buf_get_lines(self.bufnr, start, end_, strict)
-end
-
 function Buffer:set_lines(lines)
     self.lines = lines
     self:set_lines_()
@@ -113,6 +114,27 @@ end
 ---@private
 function Buffer:set_lines_()
     vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, self.lines)
+end
+
+---Filter a buffer's lines.
+---See |:g|
+---@param line1 number line range start
+---@param line2 number line range end
+---@param pattern string regex
+---@param matching boolean when true, remove lines matching the pattern, else remove lines NOT
+---matching the pattern
+---@param yank boolean when true, uses the `:d` command, else uses the `:d_` command
+---@usage [[
+---buffer:filter_lines(0, -1, "lua", true) -- Only lines without "lua" in them
+---@usage ]]
+function Buffer:filter_lines(line1, line2, pattern, matching, yank)
+    local bang = matching and "" or "!"
+    local clobber = yank and "d" or "d_"
+    if line1 == line2 then
+        self:bufdo("execute '%g" .. bang .. "/" .. pattern .. "/" .. clobber .. "'")
+    else
+        self:bufdo("execute '" .. line1 .. "," .. line2 .. "g" .. bang .. "/" .. pattern .. "/" .. clobber .. "'")
+    end
 end
 
 ---@param how string Any full (unabbreviated) buffer opening command, e.g. `:edit`, `:split`, `:vert pedit`, etc.

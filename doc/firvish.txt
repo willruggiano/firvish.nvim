@@ -17,21 +17,13 @@ Firvish is split into features, which can enabled on an individual basis and cor
 commands. Firvish does NOT create keymappings except in Firvish specific buffers (e.g. |firvish-buffers|).
 
 These are the currently available features:
-  * buffers - creates a |:Buffers| command which opens the buffer list
-  * fh - creates several commands (|:Fhdo|, |:Fhfilter|, |:Fhq| and |:Fhl|) which allow you to
-    interact with a buffer displaying files (see: |firvish-dir|)
-  * find - creates three commands (|:Fd|, |:Cfd| and |:Lfd|) that captures the output of running
-    `fd` in a dedicated buffer (see: |firvish-dir|), the quickfix list or the location list
-    respectively. Requires `fd` (https://github.com/sharkdp/fd) to be installed
-  * frun - creates three commands (|:Frun|, |:Cfrun| and |:Lfrun|) that captures the output of an
-    arbitrary command in a dedicate buffer (see: |firvish-job|), the quickfix list or the location
-    list respectively
-  * grep - creates three commands (|:Rg|, |:Crg| and |:Lrg|) that captures the output of running
-    `rg` in a dedicated buffer (see: |firvish-dir|), the quickfix list or the location list
-    respectively. Requires `rg` (https://github.com/BurntSushi/ripgrep) to be installed
-  * history - creates a |:History| command which shows recently opened files in a dedicated
-    buffer (see: |firvish-dir|)
-  * jobs - creates a |:FirvishJobs| command which shows jobs started via Firvish's job_control module.
+  * buffers - see |firvish.features.buffers|
+  * fh - see |firvish.features.fh|
+  * find - see |firvish.features.find|
+  * frun - see |firvish.features.frun|
+  * grep - see |firvish.features.grep|
+  * history - see |firvish.features.history|
+  * jobs - see |firvish.features.jobs|
 
 Features can be enabled or disabled individually through |firvish.setup|:
 
@@ -48,7 +40,7 @@ You can also enable all features:
 
 >
 require("firvish").setup {
-  features = true,
+  features = true, -- Enables all features
 }
 <
 
@@ -56,13 +48,8 @@ require("firvish").setup {
 firvish.setup()                                                  *firvish.setup*
 
     See: ~
-        |firvish.config|
+        |firvish.features|
 
-
-==============================================================================
-Configuration                                                   *firvish.config*
-
-firvish.nvim is split up into "features". See |firvish.features| for an exhaustive list.
 
 ==============================================================================
 :Buffers                                              *firvish.features.buffers*
@@ -86,16 +73,21 @@ require("firvish").setup {
 
                                                                *firvish-buffers*
 The buffer list comes with some default keymaps.
-You can add your own keymaps or change the default keymaps by specifying
+You can add your own keymaps or change the default keymaps by including
 them when calling |firvish.setup|. To disable a keymap, map it to `false`.
 
 >
 require("firvish").setup {
     features = {
         buffers = {
+            behavior = {
+                open = "edit",
+                bang_open = "vsplit",
+            },
+            filter = buf_listed + (buf_buftype_not { "quickfix" }) + (buf_filetype_not { "firvish-buffers" }),
             keymaps = {
                 n = {
-                    ["<enter>"] = {
+                    ["<CR>"] = {
                         function()
                             require("firvish.buffers").jump_to_buffer()
                         end,
@@ -142,20 +134,17 @@ require("firvish").setup {
 ==============================================================================
 Fh                                                                  *firvish.fh*
 
+The "fh" feature provides several commands that ... ???
+
                                                                          *:Fhdo*
-                                                                     *:Fhfilter*
-                                                                          *:Fhq*
-                                                                          *:Fhl*
-Fh stuff
+:[range]Fhdo[!] {cmd}
+    Generates a script with {cmd} applied to [range] and the respective filepath
+    inserted wherever {} appears in {cmd}. If bang ! is given, the resulting script is a vim
+    script, otherwise it is a shell script.
 
-fh.filter()                                                          *fh.filter*
-
-
-fh.send_to_errorlist()                                    *fh.send_to_errorlist*
-
-
-fh.do_()                                                                *fh.do_*
-
+    For example, to rename a list of visual-selected files: >
+        :'<,'>Fhdo mv {} {}-copy.txt
+<    Run the script with |E!| or `:!%`
 
 ==============================================================================
 Find                                                              *firvish.find*
@@ -205,5 +194,59 @@ Jobs                                                              *firvish.jobs*
 
                                                                   *:FirvishJobs*
 Job stuff
+
+==============================================================================
+firvish-buffers                                       *firvish.filetype.buffers*
+
+                                                               *firvish-buffers*
+The firvish-buffers filetype is used when viewing the buffer list.
+
+Mappings ~
+    <CR>    Open file under cursor
+    <C-s>   Open file under cursor is a split
+    <C-v>   Open file under cursor is a vertical split
+
+ft.setup()                                                            *ft.setup*
+
+
+ft.refresh({buffer})                                                *ft.refresh*
+
+    Parameters: ~
+        {buffer}  (Buffer)
+
+
+ft.open_file()                                                    *ft.open_file*
+
+
+ft.buffer_at_cursor()                                      *ft.buffer_at_cursor*
+
+
+ft.buffer_at_line()                                          *ft.buffer_at_line*
+
+
+==============================================================================
+firvish-dir                                               *firvish.filetype.dir*
+
+                                                                   *firvish-dir*
+The file buffer is a filetype used when viewing a directory.
+
+Mappings ~
+    <CR>             Open file at cursor.
+    {Visual}<CR>     Open selected files.
+    x                Add file at cursor to quickfix list.
+    {Visual}x        Add selected files to quickfix list.
+
+dir.setup()                                                          *dir.setup*
+
+
+dir.open_selected_files()                              *dir.open_selected_files*
+
+
+dir.send_file_to_quickfix_list()                *dir.send_file_to_quickfix_list*
+
+
+                                      *dir.send_selected_files_to_quickfix_list*
+dir.send_selected_files_to_quickfix_list()
+
 
 vim:tw=78:ts=8:noet:ft=help:norl:
