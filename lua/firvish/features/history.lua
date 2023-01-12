@@ -87,7 +87,7 @@ function history.setup(opts)
             [filename] = function(_, bufnr)
                 require("firvish.filetype.history").setup(bufnr)
                 return "firvish-dir"
-            end
+            end,
         },
     }
 

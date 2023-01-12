@@ -1,22 +1,25 @@
 {
+  description = "vim-dirvish but in Lua";
+
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    pre-commit-hooks-nix.url = "github:cachix/pre-commit-hooks.nix";
   };
 
-  outputs = {
-    self,
-    flake-utils,
-    nixpkgs,
-    ...
-  }:
-    flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import nixpkgs {
-        inherit system;
-      };
-    in {
-      apps.update-docs = flake-utils.lib.mkApp {
-        drv = pkgs.writeShellApplication {
+  outputs = {flake-parts, ...} @ inputs:
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      imports = [
+        inputs.pre-commit-hooks-nix.flakeModule
+      ];
+
+      systems = ["x86_64-linux" "aarch64-darwin"];
+      perSystem = {
+        config,
+        pkgs,
+        ...
+      }: {
+        apps.update-docs.program = pkgs.writeShellApplication {
           name = "update-docs";
           runtimeInputs = with pkgs; [lemmy-help];
           text = ''
@@ -25,10 +28,23 @@
             nvim --headless -c 'helptags doc/' -c q
           '';
         };
+
+        devShells.default = pkgs.mkShell {
+          name = "firvish.nvim";
+          shellHook = ''
+            ${config.pre-commit.installationScript}
+          '';
+        };
+
+        formatter = pkgs.alejandra;
+
+        pre-commit = {
+          check.enable = true;
+          settings.hooks = {
+            alejandra.enable = true;
+            stylua.enable = true;
+          };
+        };
       };
-      devShells.default = pkgs.mkShell {
-        name = "dev";
-        buildInputs = with pkgs; [lemmy-help];
-      };
-    });
+    };
 }
