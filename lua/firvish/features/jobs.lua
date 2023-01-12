@@ -93,6 +93,12 @@ jobs.config = {
     end,
     keymaps = {
         n = {
+            ["-"] = {
+                callback = function(lib)
+                    lib.close()
+                end,
+                desc = "[firvish] Return to alternate file",
+            },
             ["<CR>"] = {
                 callback = function(lib)
                     lib.preview_job "pedit"
@@ -101,7 +107,7 @@ jobs.config = {
             },
             ["<C-v>"] = {
                 callback = function(lib)
-                  lib.preview_job "vert pedit"
+                    lib.preview_job "vert pedit"
                 end,
                 desc = "[firvish] Open preview for job under cursor in a vertical split",
             },

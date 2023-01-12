@@ -1,3 +1,5 @@
+---@alias JobHandle number
+
 ---@class JobList
 ---@field jobs Job[]
 ---@field previews JobPreview[]
@@ -19,10 +21,10 @@ end
 ---@param job Job
 ---@param preview JobPreview
 function JobList:add(job, preview)
-    self.jobs[index + 1] = job
-    self.previews[index + 1] = preview
     index = index + 1
-    return self
+    self.jobs[index] = job
+    self.previews[index] = preview
+    return index
 end
 
 function JobList:at(idx)
@@ -56,7 +58,7 @@ end
 function JobList:lines()
     local lines = {}
     for _, preview in pairs(self.previews) do
-        table.insert(lines, preview:line())
+        table.insert(lines, preview:line { n = self:count() })
     end
     return lines
 end

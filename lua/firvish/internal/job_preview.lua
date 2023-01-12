@@ -18,8 +18,15 @@ function JobPreview:open(how)
     self.buffer:open(how)
 end
 
-function JobPreview:line()
-    local line = { "[" .. self.opts.job_idx .. "]", self.job:start_time(), "->", self.job:end_time() }
+function JobPreview:line(opts)
+    -- No matter what index you are, you always get one space of padding
+    -- You also get the difference between you and the max
+    local sep = 1 + #tostring(opts.n) - #tostring(self.opts.job_idx)
+    local line = {
+        "[" .. self.opts.job_idx .. "]" .. string.rep(" ", sep) .. self.job:start_time(),
+        "->",
+        self.job:end_time(),
+    }
 
     if self.opts.errorlist == "quickfix" then
         table.insert(line, "[QF]")

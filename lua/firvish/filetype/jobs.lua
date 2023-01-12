@@ -8,7 +8,11 @@ local Buffer = require "firvish.internal.buffer"
 
 local lines = require "firvish.lib.lines"
 
-local lib = {}
+local generic = require "firvish.filetype.generic"
+local lib = {
+    close = generic.close,
+    open_alternate_file = generic.open_alternate_file,
+}
 
 ---@package
 function lib.setup(bufnr)

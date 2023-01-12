@@ -17,12 +17,34 @@ local default_bopen_opts = {
 
 function M.jobs(filter)
     if filter then
-      return job_list:filter(filter)
+        return job_list:filter(filter)
     else
-      return job_list
+        return job_list
     end
 end
 
+---@class StartJobOpts
+---@field command string
+---@field args string[]
+---@field cwd? string
+---@field filetype? string
+---@field title? string
+---@field bopen? boolean|OpenBufferOpts
+---@field eopen? boolean
+---@field errorlist? string
+---@field efm? string|string[]
+---@field no_stdout? boolean
+---@field no_stderr? boolean
+---@field on_exit? function
+---@field keep? boolean
+
+---@class OpenBufferOpts
+---@field headers? boolean
+---@field how? string
+
+---Start a job
+---@param opts StartJobOpts
+---@return Job
 function M.start_job(opts)
     local bopen_opts = vim.tbl_extend("force", default_bopen_opts, type(opts.bopen) == "table" and opts.bopen or {})
     local is_background_job = (function()
@@ -30,7 +52,7 @@ function M.start_job(opts)
         -- the background. You could say `:Crg ...` which would open the job output buffer *and*
         -- write the results to a quickfix list.
         if type(opts.bopen) == "table" then
-            return false
+            return opts.bopen.open == false
         end
 
         return opts.bopen == false
@@ -77,8 +99,15 @@ function M.start_job(opts)
                         error_list:open()
                     end
                 end
+                if opts.keep == false then
+                    buffer:create_autocmd({ "BufDelete", "BufWipeout" }, {
+                        callback = function()
+                            job_list:remove(job_idx)
+                        end,
+                    })
+                end
+                pcall(opts.on_exit, self, buffer)
             end)
-            pcall(opts.on_exit, self)
         end,
         ---@diagnostic disable-next-line: unused-local
         on_stdout = function(self, data)
