@@ -12,11 +12,11 @@
 ---
 ---    For example, to rename a list of visual-selected files: >
 ---        :'<,'>Fhdo mv {} {}-copy.txt
----<    Run the script with |E!| or `:!%`
+---<    Run the script with |Z!| or `:!%`
 ---@brief ]]
 ---@see vim.opt.shell
 
-local lib = require "firvish.lib"
+local fhdo = require "firvish.lib.fhdo"
 
 local fh = {}
 
@@ -27,7 +27,7 @@ fh.config = {
             ["Z!"] = {
                 function()
                     vim.cmd "silent write"
-                    lib.fhdo.exec(vim.api.nvim_get_current_buf())
+                    fhdo.exec(vim.api.nvim_get_current_buf())
                 end,
                 { desc = "[firvish] Execute script" },
             },
@@ -49,7 +49,7 @@ end
 function fh.setup()
     vim.api.nvim_create_user_command("Fhdo", function(args)
         local line1, line2 = make_range(args)
-        lib.fhdo.generate {
+        fhdo.generate {
             source = vim.api.nvim_get_current_buf(),
             command = args.args,
             open = fh.config.open,

@@ -1,6 +1,34 @@
 ---@mod firvish.find Find
+---@brief [[
+---The "find" feature provides several commands that allow you to find files and populate a dedicate
+---buffer with the search results. The output buffer will have its filetype set to |firvish-dir|.
+---
+---This command requires `fd` (https://github.com/sharkdp/fd) to be installed.
+---@brief ]]
+---@see firvish-dir
 
-local jobctrl = require "firvish.jobs"
+---@tag :Fd
+---@brief [[
+---:[range]Fd[!] {args}
+---    Runs a find (using fd) and sends the output to a buffer.
+---    If bang ! is given, the command will run in the background.
+---@brief ]]
+
+---@tag :Cfd
+---@brief [[
+---:[range]Cfd[!] {args}
+---    Runs a find (using fd) and sends the output to the |quickfix-window|.
+---    If bang ! is given, will |:copen| the quickfix-window as soon as the job completes.
+---@brief ]]
+
+---@tag :Lfd
+---@brief [[
+---:[range]Lfd[!] {args}
+---    Runs a find (using fd) and sends the output to the |location-list-window|.
+---    If bang ! is given, will |:lopen| the location-list-window as soon as the job completes.
+---@brief ]]
+
+local jobctrl = require "firvish.lib.jobs"
 
 local find = {}
 
@@ -19,9 +47,6 @@ end
 ---@package
 function find.setup()
     if vim.fn.executable "fd" == 1 then
-        -- :Fd[!] <args>
-        -- Runs a find (using fd) and sends the output to a buffer.
-        -- <bang> causes the find to be run in the background
         vim.api.nvim_create_user_command("Fd", function(args)
             fd {
                 args = args.fargs,
@@ -30,9 +55,6 @@ function find.setup()
             }
         end, { bang = true, complete = "file", nargs = "*" })
 
-        -- :Cfd[!] <args>
-        -- Runs a find (using fd) and outputs the matches to a quickfix list.
-        -- <bang> causes the quickfix list to be opened as soon as the Job completes
         vim.api.nvim_create_user_command("Cfd", function(args)
             fd {
                 args = args.fargs,
@@ -42,9 +64,6 @@ function find.setup()
             }
         end, { bang = true, complete = "file", nargs = "*" })
 
-        -- :Lfd[!] <args>
-        -- Runs a find (using fd) and outputs the matches to a location list.
-        -- <bang> causes the location list to be opened as soon as the Job completes
         vim.api.nvim_create_user_command("Lfd", function(args)
             fd {
                 args = args.fargs,

@@ -52,76 +52,77 @@ firvish.setup()                                                  *firvish.setup*
 
 
 ==============================================================================
-:Buffers                                              *firvish.features.buffers*
+Buffers                                               *firvish.features.buffers*
 
-                                                                      *:Buffers*
-The `:Buffers` command opens the buffer list.
+The buffer list is like |:ls| except that the buffer list itself is contained in a normal vim
+buffer. This allows you to manipulate it like any other buffer. You can |dd| a few lines
+and |:write| the buffer to delete buffers (|:bdelete|, |:bwipeout|). You can edit buffer names by
+editing the line corresponding to that buffer.
 
-How the `:Buffers` command opens the buffer list can be customized through |firvish.setup|:
-
->
-require("firvish").setup {
-  features = {
-    buffers = {
-      open = "edit",        -- Corresponds to |:edit|
-      bang_open = "vsplit", -- Corresponds to |:vsplit|
-    },
-  },
-}
-<
-
-
-                                                               *firvish-buffers*
-The buffer list comes with some default keymaps.
-You can add your own keymaps or change the default keymaps by including
-them when calling |firvish.setup|. To disable a keymap, map it to `false`.
+The buffer list can be configured through |firvish.setup|. By default, it has the following
+configuration:
 
 >
 require("firvish").setup {
     features = {
         buffers = {
             behavior = {
+                -- Specifies how to open the buffer list when using the |:Buffers| command
+                -- or the Lua API.
                 open = "edit",
+                -- Specifies how to open the buffer list when bang ! is given to the |:Buffers|
+                -- command.
                 bang_open = "vsplit",
             },
-            filter = buf_listed + (buf_buftype_not { "quickfix" }) + (buf_filetype_not { "firvish-buffers" }),
+            -- The default filter applied to the buffer list. Only show buffers that are listed
+            -- and not a quickfix or firvish buffer.
+            -- See |firvish-filters|
+            filter = buf_listed + (buf_buftype_not { "quickfix" }) + (buf_filetype_not { "firvish-*" }),
+            keymaps = {
+                -- See |firvish-buffers-keymaps|
+            },
+        },
+    },
+}
+<
+
+                                                                      *:Buffers*
+:Buffers[!]
+    Opens the buffer list.
+    If bang ! is given, will use the alternate open behavior:
+    `features.buffers.behavior.bang_open`
+
+
+                                                               *firvish-buffers*
+                                                       *firvish-buffers-keymaps*
+The firvish-buffers filetype is used when viewing the buffer list.
+
+Default mappings ~
+    <CR>    Open file under cursor
+    <C-s>   Open file under cursor in a split
+    <C-v>   Open file under cursor in a vertical split
+
+Mappings can be configured through |firvish.setup|. Assigning a mapping to `false` disables it.
+When configuring mappings through |firvish.setup|, you must specify a callback function. This
+callback function will receive the buffer-local lib (|firvish.filetype.buffers|) which can be used to
+perform common actions relevant to the buffer list (getting the buffer under the cursor,
+refreshing the buffer list, etc).
+
+>
+require("firvish").setup {
+    features = {
+        buffers = {
             keymaps = {
                 n = {
-                    ["<CR>"] = {
-                        function()
-                            require("firvish.buffers").jump_to_buffer()
+                    gm = {
+                        callback = function(lib)
+                            -- Filter the buffer list to show only modified files
+                            local is_modified = Filter:new(function(buffer)
+                                return buffer:get_option "modified" == true
+                            end)
+                            lib.refresh(is_modified)
                         end,
-                        { desc = "[firvish] Jump to buffer" },
-                    },
-                    ["-"] = {
-                        function()
-                            vim.cmd "edit firvish-menu"
-                        end,
-                        { desc = "[firvish] Menu" },
-                    },
-                    ["za"] = {
-                        function()
-                            require("firvish.buffers").filter_buffers "args"
-                        end,
-                        { desc = "[firvish] Filter buffers (argv)" },
-                    },
-                    ["zm"] = {
-                        function()
-                            require("firvish.buffers").filter_buffers "modified"
-                        end,
-                        { desc = "[firvish] Filter buffers (modified)" },
-                    },
-                    ["zv"] = {
-                        function()
-                            require("firvish.buffers").filter_buffers "current_tab"
-                        end,
-                        { desc = "[firvish] Filter buffers (visible)" },
-                    },
-                    ["R"] = {
-                        function()
-                            require("firvish.buffers").rename_buffer()
-                        end,
-                        { desc = "[firvish] Rename buffer" },
+                        desc = "[firvish] Filter modified files",
                     },
                 },
             },
@@ -144,10 +145,30 @@ The "fh" feature provides several commands that ... ???
 
     For example, to rename a list of visual-selected files: >
         :'<,'>Fhdo mv {} {}-copy.txt
-<    Run the script with |E!| or `:!%`
+<    Run the script with |Z!| or `:!%`
 
 ==============================================================================
 Find                                                              *firvish.find*
+
+The "find" feature provides several commands that allow you to find files and populate a dedicate
+buffer with the search results. The output buffer will have its filetype set to |firvish-dir|.
+
+This command requires `fd` (https://github.com/sharkdp/fd) to be installed.
+
+                                                                           *:Fd*
+:[range]Fd[!] {args}
+    Runs a find (using fd) and sends the output to a buffer.
+    If bang ! is given, the command will run in the background.
+
+                                                                          *:Cfd*
+:[range]Cfd[!] {args}
+    Runs a find (using fd) and sends the output to the |quickfix-window|.
+    If bang ! is given, will |:copen| the quickfix-window as soon as the job completes.
+
+                                                                          *:Lfd*
+:[range]Lfd[!] {args}
+    Runs a find (using fd) and sends the output to the |location-list-window|.
+    If bang ! is given, will |:lopen| the location-list-window as soon as the job completes.
 
 ==============================================================================
 Frun                                                              *firvish.frun*
@@ -190,63 +211,81 @@ history.open_file()                                          *history.open_file*
 
 
 ==============================================================================
-Jobs                                                              *firvish.jobs*
+Job Control                                              *firvish.features.jobs*
+
+Firvish offers builtin job control functionality which is basically a wrapper around Neovim's
+builtin |job-control|. The job list is again just a normal vim buffer and you can manipulate it
+using normal vim commands. For example, you can |dd| a few lines to delete those jobs from the
+job list.
+
+The job list can be configured through |firvish.setup|. By default, it has the following
+configuration:
+
+>
+require("firvish").setup {
+    features = {
+        jobs = {
+            behavior = {
+                -- Specifies how to open the job list when using the |:FirvishJobs| command
+                -- or the Lua API.
+                open = "pedit",
+                -- Specifies how to open the buffer list when bang ! is given to the
+                -- |:FirvishJobs|
+                -- command.
+                bang_open = "vsplit",
+            },
+            keymaps = {
+                -- See |firvish-jobs-keymaps|
+            },
+        },
+    },
+}
+<
+
 
                                                                   *:FirvishJobs*
-Job stuff
-
-==============================================================================
-firvish-buffers                                       *firvish.filetype.buffers*
-
-                                                               *firvish-buffers*
-The firvish-buffers filetype is used when viewing the buffer list.
-
-Mappings ~
-    <CR>    Open file under cursor
-    <C-s>   Open file under cursor is a split
-    <C-v>   Open file under cursor is a vertical split
-
-ft.setup()                                                            *ft.setup*
+:FirvishJobs[!]
+    Open the job list.
+    If bang ! is given, will use the alternate open behavior:
+    `features.jobs.behavior.bang_open`
 
 
-ft.refresh({buffer})                                                *ft.refresh*
+                                                                  *firvish-jobs*
+                                                          *firvish-jobs-keymaps*
+The firvish-jobs filetype is used when viewing the job list.
 
-    Parameters: ~
-        {buffer}  (Buffer)
+Default mappings ~
+    <CR>    Open the job output window for the job under the cursor
+    <C-s>   Open the job output window for the job under the cursor in a split
+    <C-v>   Open the job output window for the job under the cursor in a vertical split
 
+Mappings can be configured through |firvish.setup|. Assigning a mapping to `false` disables it.
+When configuring mappings through |firvish.setup|, you must specify a callback function. This
+callback function will receive the buffer-local lib (|firvish.filetype.jobs|) which can be used to
+perform common actions relevant to the job list.
 
-ft.open_file()                                                    *ft.open_file*
-
-
-ft.buffer_at_cursor()                                      *ft.buffer_at_cursor*
-
-
-ft.buffer_at_line()                                          *ft.buffer_at_line*
-
-
-==============================================================================
-firvish-dir                                               *firvish.filetype.dir*
-
-                                                                   *firvish-dir*
-The file buffer is a filetype used when viewing a directory.
-
-Mappings ~
-    <CR>             Open file at cursor.
-    {Visual}<CR>     Open selected files.
-    x                Add file at cursor to quickfix list.
-    {Visual}x        Add selected files to quickfix list.
-
-dir.setup()                                                          *dir.setup*
-
-
-dir.open_selected_files()                              *dir.open_selected_files*
-
-
-dir.send_file_to_quickfix_list()                *dir.send_file_to_quickfix_list*
-
-
-                                      *dir.send_selected_files_to_quickfix_list*
-dir.send_selected_files_to_quickfix_list()
+>
+require("firvish").setup {
+    features = {
+        jobs = {
+            keymaps = {
+                n = {
+                    gm = {
+                        callback = function(lib)
+                            -- Filter the buffer list to show only modified files
+                            local is_modified = Filter:new(function(buffer)
+                                return buffer:get_option "modified" == true
+                            end)
+                            lib.refresh(is_modified)
+                        end,
+                        desc = "[firvish] Filter modified files",
+                    },
+                },
+            },
+        },
+    },
+}
+<
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

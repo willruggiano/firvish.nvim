@@ -90,7 +90,7 @@ function fhdo.exec(buffer)
     else
         local args = {}
         table.insert(args, buffer:name())
-        require("firvish.jobs").start_job {
+        require("firvish.lib.jobs").start_job {
             command = vim.opt.shell:get(),
             args = args,
             filetype = "firvish-job",

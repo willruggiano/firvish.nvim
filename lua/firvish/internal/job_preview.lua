@@ -14,11 +14,11 @@ function JobPreview:new(job, buffer, opts)
     return obj
 end
 
-function JobPreview:open()
-    self.buffer:open()
+function JobPreview:open(how)
+    self.buffer:open(how)
 end
 
-function JobPreview:make_line()
+function JobPreview:line()
     local line = { "[" .. self.opts.job_idx .. "]", self.job:start_time(), "->", self.job:end_time() }
 
     if self.opts.errorlist == "quickfix" then

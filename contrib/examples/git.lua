@@ -1,6 +1,6 @@
 local git = {}
 
-local jobs = require "firvish.jobs"
+local jobs = require "firvish.lib.jobs"
 
 ---Streams the output of `git ls-files` to a dedicated buffer.
 ---You can then use normal |firvish-dir| mappings to manipulate files in your git repository.

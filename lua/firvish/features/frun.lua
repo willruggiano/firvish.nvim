@@ -6,7 +6,7 @@
 ---Frun stuff
 ---@brief ]]
 
-local jobctrl = require "firvish.jobs"
+local jobctrl = require "firvish.lib.jobs"
 
 local frun = {}
 

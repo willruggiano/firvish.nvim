@@ -1,11 +1,10 @@
----@mod firvish.filetype.buffers
+---@mod firvish.filetype.jobs
 ---@brief [[
----The buffer-local library which is passed to keymaps associated with the |firvish-buffers|
+---The buffer-local library which is passed to keymaps associated with the |firvish-jobs|
 ---filetype.
 ---@brief ]]
 
 local Buffer = require "firvish.internal.buffer"
-local BufferList = require "firvish.lib.bufferlist"
 
 local lines = require "firvish.lib.lines"
 
@@ -23,7 +22,7 @@ function lib.setup(bufnr)
         swapfile = false,
     }
 
-    local config = require("firvish.features.buffers").config
+    local config = require("firvish.features.jobs").config
     local default_opts = { buffer = bufnr, noremap = true, silent = true }
     for mode, mappings in pairs(config.keymaps) do
         for lhs, opts in pairs(mappings) do
@@ -35,49 +34,52 @@ function lib.setup(bufnr)
         end
     end
 
-    -- Display the buffer-list
-    lib.refresh(config.filter, buffer)
+    -- Display the job-list
+    lib.refresh(buffer)
 
-    -- Make it so whenever we enter the buffer the buffer-list gets refreshed
+    -- Make it so whenever we enter the buffer the job-list gets refreshed
     vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
         buffer = bufnr,
         callback = function()
-            lib.refresh(config.filter, buffer)
+            lib.refresh(buffer)
         end,
     })
 end
 
----Refresh the buffer list
----@param filter Filter|function only show buffers that satisfy the given filter
+---Refresh the job list
 ---@param buffer? Buffer
-function lib.refresh(filter, buffer)
+function lib.refresh(buffer)
     if buffer == nil then
         buffer = Buffer:new(vim.api.nvim_get_current_buf())
     end
-    local bufferlist = BufferList:new(true, filter)
-    buffer:set_lines(bufferlist:lines())
+    local joblist = require("firvish.lib.jobs").jobs()
+    buffer:set_lines(joblist:lines())
     buffer:set_option("modified", false)
 end
 
----Open a file from the buffer list
+---Preview the output of the job at the current cursor position
 ---@param how? string how to open the buffer, e.g. `:edit`, `:split`, `:vert pedit`, etc
-function lib.open_file(how)
-    local buffer = lib.buffer_at_cursor()
-    buffer:open(how)
+function lib.preview_job(how)
+    local _, preview = lib.job_at_cursor()
+    vim.cmd.pclose()
+    preview:open(how)
 end
 
----Get the Buffer at the current cursor position
----@return Buffer
-function lib.buffer_at_cursor()
+---Get the Job at the current cursor position
+---@return Job, JobPreview
+function lib.job_at_cursor()
     local line = lines.get_cursor_line()
-    return lib.buffer_at_line(line)
+    return lib.job_at_line(line)
 end
 
 ---@package
----@return Buffer
-function lib.buffer_at_line(line)
-    local bufnr = lib.parse_line(line)
-    return Buffer:new(bufnr)
+---@return Job, JobPreview
+function lib.job_at_line(line)
+    local job_idx = lib.parse_line(line)
+    -- TODO: This is kind of problematic.
+    -- See lua/firvish/features/jobs.lua and the "g." keymap
+    local joblist = require("firvish.lib.jobs").jobs()
+    return joblist:at(job_idx)
 end
 
 ---@package
@@ -86,7 +88,7 @@ function lib.parse_line(line)
     if match ~= nil then
         return tonumber(match)
     else
-        error("[firvish] Failed to get buffer from '" .. line .. "'")
+        error("[firvish] Failed to get job from '" .. line .. "'")
     end
 end
 

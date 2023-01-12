@@ -46,13 +46,13 @@
 ---@brief ]]
 ---
 ---@see firvish.setup
----@see firvish.buffers
----@see firvish.fh
----@see firvish.find
----@see firvish.frun
----@see firvish.grep
----@see firvish.history
----@see firvish.jobs
+---@see firvish.features.buffers
+---@see firvish.features.fh
+---@see firvish.features.find
+---@see firvish.features.frun
+---@see firvish.features.grep
+---@see firvish.features.history
+---@see firvish.features.jobs
 
 local firvish = {}
 

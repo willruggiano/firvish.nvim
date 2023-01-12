@@ -14,7 +14,7 @@
 ---@brief ]]
 local cmake = {}
 
-local jobs = require "firvish.jobs"
+local jobs = require "firvish.lib.jobs"
 
 ---Run an arbitrary CMake command.
 ---@param opts table

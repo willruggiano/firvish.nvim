@@ -1,75 +1,80 @@
----@mod firvish.features.buffers :Buffers
----@tag :Buffers
+---@mod firvish.features.buffers Buffers
 ---@brief [[
----The `:Buffers` command opens the buffer list.
+---The buffer list is like |:ls| except that the buffer list itself is contained in a normal vim
+---buffer. This allows you to manipulate it like any other buffer. You can |dd| a few lines
+---and |:write| the buffer to delete buffers (|:bdelete|, |:bwipeout|). You can edit buffer names by
+---editing the line corresponding to that buffer.
 ---
----How the `:Buffers` command opens the buffer list can be customized through |firvish.setup|:
----
---->
----require("firvish").setup {
----  features = {
----    buffers = {
----      open = "edit",        -- Corresponds to |:edit|
----      bang_open = "vsplit", -- Corresponds to |:vsplit|
----    },
----  },
----}
----<
----
----@brief ]]
-
----@tag firvish-buffers
----@brief [[
----The buffer list comes with some default keymaps.
----You can add your own keymaps or change the default keymaps by including
----them when calling |firvish.setup|. To disable a keymap, map it to `false`.
+---The buffer list can be configured through |firvish.setup|. By default, it has the following
+---configuration:
 ---
 --->
 ---require("firvish").setup {
 ---    features = {
 ---        buffers = {
 ---            behavior = {
+---                -- Specifies how to open the buffer list when using the |:Buffers| command
+---                -- or the Lua API.
 ---                open = "edit",
+---                -- Specifies how to open the buffer list when bang ! is given to the |:Buffers|
+---                -- command.
 ---                bang_open = "vsplit",
 ---            },
----            filter = buf_listed + (buf_buftype_not { "quickfix" }) + (buf_filetype_not { "firvish-buffers" }),
+---            -- The default filter applied to the buffer list. Only show buffers that are listed
+---            -- and not a quickfix or firvish buffer.
+---            -- See |firvish-filters|
+---            filter = buf_listed + (buf_buftype_not { "quickfix" }) + (buf_filetype_not { "firvish-*" }),
+---            keymaps = {
+---                -- See |firvish-buffers-keymaps|
+---            },
+---        },
+---    },
+---}
+---<
+---@brief ]]
+---@see firvish-buffers
+---@see firvish-buffer-api
+
+---@tag :Buffers
+---@brief [[
+---:Buffers[!]
+---    Opens the buffer list.
+---    If bang ! is given, will use the alternate open behavior:
+---    `features.buffers.behavior.bang_open`
+---
+---@brief ]]
+
+---@tag firvish-buffers
+---@tag firvish-buffers-keymaps
+---@brief [[
+---The firvish-buffers filetype is used when viewing the buffer list.
+---
+---Default mappings ~
+---    <CR>    Open file under cursor
+---    <C-s>   Open file under cursor in a split
+---    <C-v>   Open file under cursor in a vertical split
+---
+---Mappings can be configured through |firvish.setup|. Assigning a mapping to `false` disables it.
+---When configuring mappings through |firvish.setup|, you must specify a callback function. This
+---callback function will receive the buffer-local lib (|firvish.filetype.buffers|) which can be used to
+---perform common actions relevant to the buffer list (getting the buffer under the cursor,
+---refreshing the buffer list, etc).
+---
+--->
+---require("firvish").setup {
+---    features = {
+---        buffers = {
 ---            keymaps = {
 ---                n = {
----                    ["<CR>"] = {
----                        function()
----                            require("firvish.buffers").jump_to_buffer()
+---                    gm = {
+---                        callback = function(lib)
+---                            -- Filter the buffer list to show only modified files
+---                            local is_modified = Filter:new(function(buffer)
+---                                return buffer:get_option "modified" == true
+---                            end)
+---                            lib.refresh(is_modified)
 ---                        end,
----                        { desc = "[firvish] Jump to buffer" },
----                    },
----                    ["-"] = {
----                        function()
----                            vim.cmd "edit firvish-menu"
----                        end,
----                        { desc = "[firvish] Menu" },
----                    },
----                    ["za"] = {
----                        function()
----                            require("firvish.buffers").filter_buffers "args"
----                        end,
----                        { desc = "[firvish] Filter buffers (argv)" },
----                    },
----                    ["zm"] = {
----                        function()
----                            require("firvish.buffers").filter_buffers "modified"
----                        end,
----                        { desc = "[firvish] Filter buffers (modified)" },
----                    },
----                    ["zv"] = {
----                        function()
----                            require("firvish.buffers").filter_buffers "current_tab"
----                        end,
----                        { desc = "[firvish] Filter buffers (visible)" },
----                    },
----                    ["R"] = {
----                        function()
----                            require("firvish.buffers").rename_buffer()
----                        end,
----                        { desc = "[firvish] Rename buffer" },
+---                        desc = "[firvish] Filter modified files",
 ---                    },
 ---                },
 ---            },
@@ -91,46 +96,30 @@ buffers.config = {
         open = "edit",
         bang_open = "vsplit",
     },
+    ---@type Filter
+    ---@diagnostic disable-next-line: assign-type-mismatch
     filter = filters.buf_listed - filters.buf_buftype(default_excluded_buftypes) - filters.buf_filetype(
         default_excluded_filetypes
     ),
     keymaps = {
         n = {
             ["<CR>"] = {
-                function()
-                    require("firvish.buffers").jump_to_buffer()
+                callback = function(lib)
+                    lib.open_file "edit"
                 end,
-                { desc = "[firvish] Jump to buffer" },
+                desc = "[firvish] Open buffer under cursor",
             },
-            ["-"] = {
-                function()
-                    vim.cmd "edit firvish-menu"
+            ["<C-s>"] = {
+                callback = function(lib)
+                    lib.open_file "split"
                 end,
-                { desc = "[firvish] Menu" },
+                desc = "[firvish] :split buffer under cursor",
             },
-            ["za"] = {
-                function()
-                    require("firvish.buffers").filter_buffers "args"
+            ["<C-v>"] = {
+                callback = function(lib)
+                    lib.open_file "vsplit"
                 end,
-                { desc = "[firvish] Filter buffers (argv)" },
-            },
-            ["zm"] = {
-                function()
-                    require("firvish.buffers").filter_buffers "modified"
-                end,
-                { desc = "[firvish] Filter buffers (modified)" },
-            },
-            ["zv"] = {
-                function()
-                    require("firvish.buffers").filter_buffers "current_tab"
-                end,
-                { desc = "[firvish] Filter buffers (visible)" },
-            },
-            ["R"] = {
-                function()
-                    require("firvish.buffers").rename_buffer()
-                end,
-                { desc = "[firvish] Rename buffer" },
+                desc = "[firvish] :vsplit buffer under cursor",
             },
         },
     },
@@ -144,7 +133,7 @@ function buffers.setup(opts)
 
     vim.filetype.add {
         filename = {
-            ["firvish://buffers"] = "firvish-buffers",
+            [filename] = "firvish-buffers",
         },
     }
 

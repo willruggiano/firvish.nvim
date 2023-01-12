@@ -10,6 +10,7 @@ local FilterModified = Filter:new(function(buffer)
     return buffer:modified()
 end)
 
+---@return Filter
 local function FilterBuftype(buftypes)
     ---@param buffer Buffer
     return Filter:new(function(buffer)
@@ -21,6 +22,7 @@ local function FilterBuftype(buftypes)
     end)
 end
 
+---@return Filter
 local function FilterFiletype(filetypes)
     ---@param buffer Buffer
     return Filter:new(function(buffer)

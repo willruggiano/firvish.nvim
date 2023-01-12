@@ -1,13 +1,6 @@
----@mod firvish.filetype.dir firvish-dir
----@tag firvish-dir
+---@mod firvish.filetype.dir
 ---@brief [[
----The file buffer is a filetype used when viewing a directory.
----
----Mappings ~
----    <CR>             Open file at cursor.
----    {Visual}<CR>     Open selected files.
----    x                Add file at cursor to quickfix list.
----    {Visual}x        Add selected files to quickfix list.
+---The buffer-local library which is passed to keymaps associated with the |firvish-dir| filetype.
 ---@brief ]]
 
 local ErrorList = require "firvish.internal.error_list"

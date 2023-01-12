@@ -20,7 +20,9 @@
           name = "update-docs";
           runtimeInputs = with pkgs; [lemmy-help];
           text = ''
-            lemmy-help lua/firvish.lua lua/firvish/config.lua lua/firvish/features/*.lua > doc/firvish.txt && nvim --headless -c 'helptags doc/' -c q
+            lemmy-help lua/firvish.lua lua/firvish/features/*.lua lua/firvish/filetype/*.lua > doc/firvish.txt
+            lemmy-help lua/firvish/lib/**/*.lua > doc/firvish-lua-api.txt
+            nvim --headless -c 'helptags doc/' -c q
           '';
         };
       };

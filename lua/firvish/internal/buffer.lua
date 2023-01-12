@@ -137,7 +137,7 @@ function Buffer:filter_lines(line1, line2, pattern, matching, yank)
     end
 end
 
----@param how string Any full (unabbreviated) buffer opening command, e.g. `:edit`, `:split`, `:vert pedit`, etc.
+---@param how string? how to open the buffer, e.g. `:edit`, `:split`, `:vert pedit`, etc.
 function Buffer:open(how)
     local winnr = self:winnr()
     if winnr ~= -1 then

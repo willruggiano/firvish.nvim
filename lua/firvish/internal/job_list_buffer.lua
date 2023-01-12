@@ -1,4 +1,3 @@
-local config = require "firvish.config"
 local utils = require "firvish.utils"
 
 ---@class JobListBuffer
