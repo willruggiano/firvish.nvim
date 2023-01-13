@@ -7,8 +7,6 @@
 local Buffer = require "firvish.internal.buffer"
 local BufferList = require "firvish.lib.bufferlist"
 
-local lines = require "firvish.lib.lines"
-
 local lib = {}
 
 ---@package
@@ -18,8 +16,7 @@ function lib.setup(bufnr)
     buffer:set_options {
         bufhidden = "wipe",
         buflisted = false,
-        -- TODO: acwrite; make the job list buffer just a normal buffer
-        buftype = "nofile",
+        buftype = "acwrite",
         swapfile = false,
     }
 
@@ -40,6 +37,35 @@ function lib.setup(bufnr)
 
     -- Make it so whenever we enter the buffer the buffer-list gets refreshed
     vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+        buffer = bufnr,
+        callback = function()
+            lib.refresh(config.filter, buffer)
+        end,
+    })
+
+    vim.api.nvim_create_autocmd("BufWriteCmd", {
+        buffer = bufnr,
+        callback = function()
+            local lines = buffer:get_lines()
+            local current = BufferList:new(true, config.filter)
+            local desired = BufferList.parse(lines)
+            ---@type BufferList
+            ---@diagnostic disable-next-line: assign-type-mismatch
+            local bufferlist = current / desired
+            for _, buf in bufferlist:iter() do
+                if buf:visible() then
+                    vim.cmd.close { count = vim.fn.bufwinnr(buf.bufnr) }
+                end
+                -- TODO: It would be nice to capture errors here and give
+                -- feedback directly in the buffer list (like LSP diagnostics)
+                -- e.g. trying to delete a modified buffer
+                vim.cmd.bwipeout(buf.bufnr)
+            end
+            buffer:set_option("modified", false)
+        end,
+    })
+
+    vim.api.nvim_create_autocmd("BufWritePost", {
         buffer = bufnr,
         callback = function()
             lib.refresh(config.filter, buffer)
@@ -69,7 +95,7 @@ end
 ---Get the Buffer at the current cursor position
 ---@return Buffer
 function lib.buffer_at_cursor()
-    local line = lines.get_cursor_line()
+    local line = require("firvish.lib.lines").get_cursor_line()
     return lib.buffer_at_line(line)
 end
 
