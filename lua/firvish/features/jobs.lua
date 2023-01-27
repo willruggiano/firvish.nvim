@@ -84,65 +84,65 @@
 local jobs = {}
 
 jobs.config = {
-    behavior = {
-        open = "pedit",
-        bang_open = "vert pedit",
+  behavior = {
+    open = "pedit",
+    bang_open = "vert pedit",
+  },
+  filter = function()
+    return true
+  end,
+  keymaps = {
+    n = {
+      ["-"] = {
+        callback = function(lib)
+          lib.close()
+        end,
+        desc = "[firvish] Return to alternate file",
+      },
+      ["<CR>"] = {
+        callback = function(lib)
+          lib.preview_job "pedit"
+        end,
+        desc = "[firvish] Open preview for job under cursor",
+      },
+      ["<C-v>"] = {
+        callback = function(lib)
+          lib.preview_job "vert pedit"
+        end,
+        desc = "[firvish] Open preview for job under cursor in a vertical split",
+      },
+      -- TODO: It might be nice to get this working.
+      -- ["g."] = {
+      --     callback = function(lib)
+      --         local filter = Filter:new(function(job)
+      --             --
+      --         end)
+      --         lib.refresh(filter)
+      --     end,
+      -- },
     },
-    filter = function()
-        return true
-    end,
-    keymaps = {
-        n = {
-            ["-"] = {
-                callback = function(lib)
-                    lib.close()
-                end,
-                desc = "[firvish] Return to alternate file",
-            },
-            ["<CR>"] = {
-                callback = function(lib)
-                    lib.preview_job "pedit"
-                end,
-                desc = "[firvish] Open preview for job under cursor",
-            },
-            ["<C-v>"] = {
-                callback = function(lib)
-                    lib.preview_job "vert pedit"
-                end,
-                desc = "[firvish] Open preview for job under cursor in a vertical split",
-            },
-            -- TODO: It might be nice to get this working.
-            -- ["g."] = {
-            --     callback = function(lib)
-            --         local filter = Filter:new(function(job)
-            --             --
-            --         end)
-            --         lib.refresh(filter)
-            --     end,
-            -- },
-        },
-    },
+  },
 }
 
 local filename = "firvish://jobs"
 
 ---@package
 function jobs.setup(opts)
-    jobs.config = vim.tbl_deep_extend("force", jobs.config, opts or {})
+  jobs.config = vim.tbl_deep_extend("force", jobs.config, opts or {})
 
-    vim.filetype.add {
-        filename = {
-            [filename] = "firvish-jobs",
-        },
-    }
+  vim.filetype.add {
+    filename = {
+      [filename] = "firvish-jobs",
+    },
+  }
 
-    vim.api.nvim_create_user_command("FirvishJobs", function(args)
-        if args.bang then
-            vim.cmd(jobs.config.behavior.bang_open .. " " .. filename)
-        else
-            vim.cmd(jobs.config.behavior.open .. " " .. filename)
-        end
-    end, { bang = true })
+  vim.api.nvim_create_user_command("FirvishJobs", function(args)
+    if args.bang then
+      vim.cmd(jobs.config.behavior.bang_open .. " " .. filename)
+    else
+      vim.cmd(jobs.config.behavior.open .. " " .. filename)
+    end
+  end, { bang = true })
 end
 
 return jobs

@@ -5,37 +5,31 @@
 ---  * Generate a buildsystem: `:CMake -S . -B build -DCMAKE_BUILD_TYPE=Release`
 ---  * Build a project or target: `:CMake --build build --target my_exe --parallel 8`
 ---
----Invoking the command with `<bang>` will run the command in the background and open a quickfix
----list with the output once the command completes.
+---Invoking the command with bang ! will run the command in the background and
+---open a quickfix list with the output once the command completes.
 ---
 --->
 ---:CMake! --build build --target my_exe --parallel 8
 ---<
 ---@brief ]]
+
 local cmake = {}
 
 local jobs = require "firvish.lib.jobs"
 
----Run an arbitrary CMake command.
----@param opts table
----@usage [[
----require("cmake").setup {
----  exe = "/path/to/cmake",
----}
----@usage ]]
 function cmake.setup(opts)
-    opts = opts or {}
-    vim.api.nvim_create_user_command("CMake", function(args)
-        jobs.start_job {
-            command = opts.exe or "cmake",
-            args = args.fargs,
-            filetype = "log",
-            title = "cmake",
-            errorlist = args.bang and "quickfix",
-            eopen = args.bang == true,
-            bopen = args.bang == false,
-        }
-    end, { bang = true, nargs = "*" })
+  opts = opts or {}
+  vim.api.nvim_create_user_command("CMake", function(args)
+    jobs.start_job {
+      command = opts.exe or "cmake",
+      args = args.fargs,
+      filetype = "log",
+      title = "cmake",
+      errorlist = args.bang and "quickfix",
+      eopen = args.bang == true,
+      bopen = args.bang == false,
+    }
+  end, { bang = true, nargs = "*" })
 end
 
 return cmake

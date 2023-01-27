@@ -1,0 +1,10 @@
+[note]
+default-title = "untitled"
+filename = "{{slug title}}"
+extension = "md"
+template = "default.md"
+
+[format.markdown]
+# zk has a "wiki" link mode, but it includes the full paths.
+# Emanote only needs the filename.
+link-format = "[[{{filename}}]]"

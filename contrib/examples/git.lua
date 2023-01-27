@@ -1,26 +1,45 @@
+---@mod ls-files LsFiles
+---@brief [[
+---Creates a :LsFiles user command which can be used to open a buffer with the
+---output of `git ls-files`.
+---
+---Invoking the command with bang ! will instruct git to only list modified files.
+---
+--->
+---:LsFiles! lua/firvish/lib
+---<
+---@brief ]]
+
 local git = {}
 
-local cmd = require "firvish.lib.cmd"
 local jobs = require "firvish.lib.jobs"
 
----Streams the output of `git ls-files` to a dedicated buffer.
----You can then use normal |firvish-dir| mappings to manipulate files in your git repository.
-function git.ls()
-    jobs.start_job {
-        command = "git",
-        args = { "ls-files" },
-        filetype = "firvish-dir",
-        title = "git ls-files",
-        bopen = {
-            headers = false,
-        },
-    }
+function git.ls(only_modified, files)
+  local args = { "ls-files" }
+  if only_modified then
+    table.insert(args, "-m")
+  end
+  jobs.start_job {
+    command = "git",
+    args = vim.list_extend(args, files),
+    filetype = "firvish-dir",
+    title = "git ls-files",
+    bopen = {
+      headers = false,
+    },
+  }
 end
 
-function git.create_user_command()
-    cmd.create_from_spec(":LsFiles[!] [path:path]", {
-        desc = "Open a buffer with the output of git ls-files",
-    })
+function git.setup()
+  vim.api.nvim_create_user_command("LsFiles", function(args)
+    git.ls(args.bang, args.fargs)
+  end, {
+    bang = true,
+    nargs = "*",
+    desc = "List git files",
+  })
 end
+
+git.setup()
 
 return git

@@ -23,14 +23,14 @@
           name = "update-docs";
           runtimeInputs = with pkgs; [lemmy-help];
           text = ''
-            lemmy-help lua/firvish.lua lua/firvish/features/*.lua lua/firvish/filetype/*.lua > doc/firvish.txt
-            lemmy-help lua/firvish/lib/**/*.lua > doc/firvish-lua-api.txt
-            nvim --headless -c 'helptags doc/' -c q
+            lemmy-help lua/firvish.lua > doc/firvish.txt
+            lemmy-help -fact lua/firvish/lib.lua lua/firvish/lib/*.lua lua/firvish/types.lua lua/firvish/types/*.lua > doc/firvish-lib.txt
           '';
         };
 
         devShells.default = pkgs.mkShell {
           name = "firvish.nvim";
+          buildInputs = with pkgs; [lemmy-help luajit zk];
           shellHook = ''
             ${config.pre-commit.installationScript}
           '';
