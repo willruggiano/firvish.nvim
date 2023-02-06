@@ -35,6 +35,10 @@ local default_bopen_opts = {
 ---@field headers? boolean
 ---@field how? string
 
+local function make_buffer(title)
+  return Buffer:new(vim.api.nvim_create_buf(true, true), title)
+end
+
 ---Start a job
 ---@param opts StartJobOpts
 ---@return Job
@@ -52,7 +56,8 @@ function jobs.start_job(opts)
   end)()
 
   local title = "`" .. table.concat(vim.list_extend({ opts.command }, opts.args or {}), " ") .. "`"
-  local buffer = Buffer:new(vim.api.nvim_create_buf(true, true), title)
+  local buffer = opts.buffer or make_buffer(title)
+
   if opts.filetype ~= nil then
     buffer:set_option("filetype", opts.filetype)
   end

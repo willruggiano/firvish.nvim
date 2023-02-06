@@ -38,6 +38,11 @@
 
         formatter = pkgs.alejandra;
 
+        packages.default = pkgs.vimUtils.buildVimPluginFrom2Nix {
+          name = "firvish.nvim";
+          src = ./.;
+        };
+
         pre-commit = {
           check.enable = true;
           settings.hooks = {

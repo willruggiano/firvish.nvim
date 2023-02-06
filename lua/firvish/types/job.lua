@@ -15,9 +15,6 @@ Job.__index = Job
 
 function Job:new(opts)
   local obj = setmetatable({
-    data = {},
-    stdout = {},
-    stderr = {},
     errorformat = opts.efm or vim.api.nvim_get_option "errorformat",
     running = false,
   }, self)
@@ -30,13 +27,9 @@ function Job:new_(opts)
     args = opts.args,
     cwd = opts.cwd,
     on_stdout = function(_, data, _)
-      table.insert(self.stdout, data)
-      table.insert(self.data, data)
       opts.on_stdout(self, data)
     end,
     on_stderr = function(_, data, _)
-      table.insert(self.stderr, data)
-      table.insert(self.data, data)
       opts.on_stderr(self, data)
     end,
     on_start = function()
@@ -60,20 +53,24 @@ function Job:start()
   self.handle:start()
 end
 
+function Job:sync()
+  self.handle:sync()
+end
+
 function Job:stop()
   self.handle:_stop()
 end
 
 function Job:lines()
-  return self.data
+  return self.handle:result()
 end
 
 function Job:stdout()
-  return self.stdout
+  return self.handle:result()
 end
 
 function Job:stderr()
-  return self.stderr
+  return self.handle:stderr_result()
 end
 
 local function formate_datetime(t)
