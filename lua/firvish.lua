@@ -22,6 +22,10 @@ local jobs = require "firvish.lib.jobs"
 
 local firvish = {}
 
+firvish.extension = require "firvish.extension"
+
+firvish.filetype = require "firvish.filetype"
+
 firvish.start_job = jobs.start_job
 
 return firvish
