@@ -1,5 +1,12 @@
+---@tag firvish-buffer
+---@brief [[
+---
+---@brief ]]
+
+local Proxy = require "firvish.types.proxy"
+
 ---@class Buffer
----@field options options
+---@field options Proxy
 local Buffer = {}
 
 local default_opts = {
@@ -11,11 +18,8 @@ local default_opts = {
   },
 }
 
----@class options
-local options = {}
-
-function options.new(bufnr)
-  return setmetatable({}, {
+local function make_options(bufnr)
+  return Proxy.new {
     __index = function(_, name)
       local value
       vim.api.nvim_buf_call(bufnr, function()
@@ -28,14 +32,14 @@ function options.new(bufnr)
         vim.opt_local[name] = value
       end)
     end,
-  })
+  }
 end
 
 function Buffer.new(bufnr, opts)
   opts = opts or {}
   local obj = setmetatable({
     bufnr = bufnr,
-    options = options.new(bufnr),
+    options = make_options(bufnr),
   }, { __index = Buffer })
 
   opts = vim.tbl_deep_extend("force", default_opts, opts)

@@ -29,6 +29,10 @@ function ErrorList:new(errorlist, opts)
     obj:set { lines = opts.lines }
   end
 
+  if opts.items ~= nil then
+    obj:set { items = opts.items }
+  end
+
   return obj
 end
 
@@ -59,12 +63,15 @@ function ErrorList:from_buf_lines(errorlist, buffer, line1, line2, opts)
 end
 
 function ErrorList:set(opts)
-  self:set_({}, self.action, {
-    context = self.context,
-    lines = opts.lines,
-    efm = opts.efm or self.efm,
-    title = self.title,
-  })
+  self:set_(
+    {},
+    self.action,
+    vim.tbl_extend("force", {
+      context = self.context,
+      efm = self.efm,
+      title = self.title,
+    }, opts)
+  )
 end
 
 local setters = {
