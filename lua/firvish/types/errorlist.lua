@@ -82,6 +82,8 @@ local openers = {
   quickfix = function(how)
     if type(how) == "string" then
       vim.cmd(how)
+    elseif type(how) == "table" then
+      vim.cmd.copen(how)
     else
       vim.cmd.copen { mods = { split = "botright" } }
     end
@@ -89,6 +91,8 @@ local openers = {
   loclist = function(how)
     if type(how) == "string" then
       vim.cmd(how)
+    elseif type(how) == "table" then
+      vim.cmd.lopen(how)
     else
       vim.cmd.lopen { mods = { split = "botright" } }
     end
