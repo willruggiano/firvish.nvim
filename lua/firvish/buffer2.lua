@@ -75,11 +75,27 @@ function Buffer:get_lines(range)
   )
 end
 
+---@class ExtMark
+---@field ns_id number Namespace id from |nvim_create_namespace()|
+---@field line number Line where to place the mark, 0-based. |api-indexing|
+---@field col number Column where to place the mark, 0-based. |api-indexing|
+---@field opts ExtMarkOpts? Optional parameters
+
+---@class ExtMarkOpts
+---@field hl_group
+---@field virt_text VirtText[]
+---@field virt_text_pos "eol"|"overlay"|"right_align"
+
+---@class VirtText
+---@field [1] string text chunk
+---@field [2] string|string[] highlight groups
+
 ---Sets (replaces) a line-range in the buffer
 ---@param lines string[] Array of lines to use as replacement
----@param opts LineRange
+---@param range LineRange
+---@param extmarks ExtMark[]?
 ---@see vim.api.nvim_buf_set_lines
-function Buffer:set_lines(lines, range)
+function Buffer:set_lines(lines, range, extmarks)
   range = range or {}
   vim.api.nvim_buf_set_lines(
     self.bufnr,
@@ -88,6 +104,11 @@ function Buffer:set_lines(lines, range)
     if_nil(range.strict, false),
     if_nil(lines, {})
   )
+  if extmarks then
+    for _, extmark in ipairs(extmarks) do
+      vim.api.nvim_buf_set_extmark(self.bufnr, extmark.ns_id, extmark.line, extmark.col, extmark.opts)
+    end
+  end
   return self
 end
 
