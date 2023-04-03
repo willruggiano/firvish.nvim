@@ -36,6 +36,7 @@ local function make_options(bufnr)
 end
 
 function Buffer.new(bufnr, opts)
+  bufnr = bufnr or vim.api.nvim_create_buf(true, true)
   opts = opts or {}
   local obj = setmetatable({
     bufnr = bufnr,
