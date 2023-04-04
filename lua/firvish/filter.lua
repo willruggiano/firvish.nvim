@@ -40,23 +40,23 @@ Filter.__index = Filter
 ---  return true
 ---end)
 ---@usage ]]
-function Filter:new(predicate)
+function Filter.new(predicate)
   return setmetatable({
     predicate = predicate,
-  }, self)
+  }, Filter)
 end
 
 ---@package
 ---@return boolean
-function Filter:__call(...)
+function Filter.__call(self, ...)
   return self.predicate(...)
 end
 
 ---@package
 ---@param other Filter
 ---@return Filter
-function Filter:__add(other)
-  return Filter:new(function(...)
+function Filter.__add(self, other)
+  return Filter.new(function(...)
     return self.predicate(...) and other.predicate(...)
   end)
 end
@@ -64,8 +64,8 @@ end
 ---@package
 ---@param other Filter
 ---@return Filter
-function Filter:__sub(other)
-  return Filter:new(function(...)
+function Filter.__sub(self, other)
+  return Filter.new(function(...)
     return self.predicate(...) and not other.predicate(...)
   end)
 end

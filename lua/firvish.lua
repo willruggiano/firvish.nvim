@@ -22,10 +22,6 @@ local jobs = require "firvish.lib.jobs"
 
 local firvish = {}
 
-firvish.extension = require "firvish.extension"
-
-firvish.filetype = require "firvish.filetype"
-
 firvish.start_job = jobs.start_job
 
 local function apply_keymaps(bufnr, keymaps)
@@ -110,8 +106,8 @@ function Extension:run(args)
   if self.extension.update then
     self.extension:update {
       buffer = self.buffer,
-      unlisted = args.bang,
       flags = args.fargs[2],
+      invert = args.bang,
     }
   end
 end
