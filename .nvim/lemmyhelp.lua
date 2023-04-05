@@ -6,7 +6,7 @@ vim.api.nvim_create_user_command("LemmyHelp", function()
     args = { "run", ".#update-docs" },
     bopen = false,
     on_exit = function()
-      vim.cmd.edit "./doc/firvish.txt"
+      vim.cmd.edit "./doc/buffers-firvish.txt"
     end,
   }
 end, {})
