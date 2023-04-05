@@ -1,21 +1,67 @@
 ==============================================================================
-Introduction                                                      *firvish.nvim*
+                                                                       *firvish*
 
 
-Firvish is primarily a job control library.
-Additionally, it provides mechanisms which promote buffer-centric
-semantics as a means of working with job output.
+Firvish is a buffer-centric, mainly job-control oriented plugin library.
+The library provides abstractions to allow extension authors the ability
+to use generic, buffer-centric semantics on arbitrary buffer data by
+simply defining certain operations of their underlying data type.
 
-Practically speaking, you use firvish like so:
-1. You run a command via `firvish.lib.start_job` and redirect its
-   output to a dedicated buffer.
-2. This dedicated buffer might have key mappings which are specific to
-   to the type of command you ran in (1). See |firvish-example-git|.
-3. You may choose to associate this job with a user command via
-   `firvish.lib.create_user_command`. Notably, this api is designed to
-   make it easy to add |command-completion|.
-   NOTE: That this functionality is currently a work-in-progress and
-   not available on this branch.
+
+                                                                      *:Firvish*
+Usage:
+
+  :Firvish[!] {extension} [args]
+
+  If [!] is given, the {extension} may use its "alternate behavior".
+  {extension} should be the name of an extension registered via
+    |firvish.register_extension|.
+  [args] are extension specific. See the relevant documentation for
+    the extension for details.
+
+
+firvish.setup()                                                  *firvish.setup*
+    Create the |:Firvish| command.
+    You can still run extensions programmatically, see |firvish-extensions|.
+
+
+firvish.register_extension()                        *firvish.register_extension*
+    Register a Firvish extension.
+    This will make the extension available programmatically, see |firvish-extensions|.
+    If combined with a call to |firvish.setup|, the extension can be
+    invoked via the |:Firvish| user command.
+
+
+==============================================================================
+Firvish Extension API                                       *firvish-extensions*
+
+
+The following method must always be implemented. It is triggered on
+the |BufEnter| and |BufWinEnter| events. It is passed a Buffer object
+which provides some abstractions for common buffer operations.
+See |firvish-buffer|.
+>
+  function Extension:on_buf_enter(buffer: Buffer)
+<
+
+When a firvish buffer has a |'buftype'| of "acwrite", the following two
+methods must also be implemented. They also accept a Buffer object as
+their only argument.
+
+>
+  function Extension:on_buf_write_cmd(buffer: Buffer)
+  function Extension:on_buf_write_post(buffer: Buffer)
+<
+
+If an extension should be executable via the |:Firvish| user command,
+the following method must be implemented. It accepts a Buffer
+object as its first argument, and a table as its second. The table
+is the same as what is passed the {command} function passed to
+|vim.api.nvim_create_user_command|.
+
+>
+  function Extension:update(args: table<string, any>)
+<
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

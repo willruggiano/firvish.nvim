@@ -23,8 +23,7 @@
           name = "update-docs";
           runtimeInputs = with pkgs; [lemmy-help];
           text = ''
-            lemmy-help lua/firvish.lua > doc/firvish.txt
-            lemmy-help -fact lua/firvish/lib.lua lua/firvish/lib/*.lua lua/firvish/types.lua lua/firvish/types/*.lua > doc/firvish-lib.txt
+            lemmy-help -c lua/firvish.lua lua/firvish/extension.lua > doc/firvish.txt
           '';
         };
 
