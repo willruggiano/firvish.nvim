@@ -5,11 +5,10 @@ local lib = require "firvish.lib"
 
 local Buffer = require "firvish.types.buffer"
 local Job = require "firvish.types.job"
-local JobList = require "firvish.types.joblist"
-local JobPreview = require "firvish.types.jobpreview"
 
 local jobs = {}
-local job_list = JobList:new()
+---@type {string: Job}
+local jobinfo = {}
 
 local default_bopen_opts = {
   headers = true,
@@ -125,20 +124,14 @@ function jobs.start_job(opts)
     end,
   }
 
-  local job = Job:new(job_opts)
+  local job = Job.new(count, job_opts)
   job:start()
 
-  local key = job_list:add(
-    job,
-    JobPreview:new(job, buffer, {
-      background = is_background_job,
-      errorlist = opts.errorlist,
-    })
-  )
+  jobinfo[tostring(job.id)] = job
   if opts.keep == false then
     buffer:create_autocmd({ "BufDelete", "BufWipeout" }, {
       callback = function()
-        job_list:remove(key)
+        jobinfo[tostring(job.id)] = nil
       end,
     })
   end
@@ -150,15 +143,18 @@ function jobs.start_job(opts)
   return job
 end
 
----Get the current joblist
----@param filter? Filter used to return a subset of jobs matching the given filter
----@return JobList
-function jobs.get_joblist(filter)
-  if filter then
-    return job_list:filter(filter)
+---@param id number?
+function jobs.getjobinfo(id)
+  if id then
+    return { jobinfo[tostring(id)] }
   else
-    return job_list
+    return vim.tbl_values(jobinfo)
   end
+end
+
+function jobs.delete_job(id)
+  -- TODO: Stop, if running
+  jobinfo[tostring(id)] = nil
 end
 
 return jobs

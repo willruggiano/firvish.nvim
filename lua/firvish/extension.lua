@@ -1,4 +1,4 @@
-local Buffer = require "firvish.buffers2"
+local Buffer = require "firvish.buffer2"
 local utils = require "firvish.utils"
 
 ---@mod firvish-extensions Firvish Extension API

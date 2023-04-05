@@ -13,11 +13,13 @@ local Handle = require "plenary.job"
 local Job = {}
 Job.__index = Job
 
-function Job:new(opts)
+function Job.new(id, opts)
   local obj = setmetatable({
+    id = id,
+    commandline = table.concat(vim.list_extend({ opts.command }, opts.args), " "),
     errorformat = opts.efm or vim.api.nvim_get_option "errorformat",
     running = false,
-  }, self)
+  }, Job)
   return obj:new_(opts)
 end
 
@@ -34,13 +36,13 @@ function Job:new_(opts)
     end,
     on_start = function()
       ---@diagnostic disable-next-line: assign-type-mismatch
-      self.start_time_ = os.date "*t"
+      self.start_time_ = os.time()
       self.running = true
       opts.on_start(self)
     end,
     on_exit = function(_, code, _)
       ---@diagnostic disable-next-line: assign-type-mismatch
-      self.end_time_ = os.date "*t"
+      self.end_time_ = os.time()
       self.exit_code = code
       self.running = false
       opts.on_exit(self)
@@ -73,8 +75,8 @@ function Job:stderr()
   return self.handle:stderr_result()
 end
 
-local function formate_datetime(t)
-  return string.format("%.2i:%.2i:%.2i", t.hour, t.min, t.sec)
+local function formate_datetime(dt)
+  return os.date("%c", dt)
 end
 
 function Job:start_time()

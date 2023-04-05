@@ -30,6 +30,14 @@ local firvish = {}
 ---Spawn {cmd} as a job. See |firvish-job-control|.
 firvish.start_job = jobs.start_job
 
+---Delete a job, stopping it if it is still running.
+---See |firvish-job-control|.
+firvish.delete_job = jobs.delete_job
+
+---Get information about job as a list of dictionaries.
+---See |firvish-job-control|.
+firvish.getjobinfo = jobs.getjobinfo
+
 ---@package
 firvish.extensions = setmetatable({}, {
   __index = function(_, key)
