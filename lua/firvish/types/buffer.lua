@@ -182,18 +182,18 @@ end
 function Buffer:open(how)
   local winnr = self:winnr()
   if winnr ~= -1 then
-    vim.api.nvim_command(winnr .. "wincmd w")
+    vim.cmd.wincmd { args = { "w" }, count = winnr }
   else
     if how ~= nil and how ~= "edit" then
-      if string.match(how, "pedit") then
-        vim.api.nvim_command(how .. " " .. self:name())
-        vim.api.nvim_command(self:winnr() .. "wincmd w")
+      if how == "pedit" then
+        vim.cmd.pedit(self:name())
+        vim.cmd.wincmd { args = { "w" }, count = self:winnr() }
         return self
       else
-        vim.api.nvim_command(how)
+        vim.cmd[how]()
       end
     end
-    vim.api.nvim_command("buffer " .. self.bufnr)
+    vim.cmd.buffer(self.bufnr)
   end
   return self
 end

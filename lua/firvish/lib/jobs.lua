@@ -1,7 +1,6 @@
 ---@mod firvish.lib.jobs The jobs api
 
 local errorlist = require "firvish.lib.errorlist"
-local lib = require "firvish.lib"
 
 local Buffer = require "firvish.types.buffer"
 local Job = require "firvish.types.job"
@@ -10,30 +9,20 @@ local jobs = {}
 ---@type {string: Job}
 local jobinfo = {}
 
-local default_bopen_opts = {
-  headers = true,
-  how = "edit",
-}
-
 ---@class StartJobOpts
 ---@field command string
 ---@field args string[]
 ---@field cwd? string
 ---@field filetype? string
 ---@field title? string
----@field bopen? boolean|OpenBufferOpts
+---@field bopen? boolean|string
 ---@field eopen? boolean
----@field errorlist? string
+---@field errorlist? boolean|string
 ---@field efm? string|string[]
 ---@field no_stdout? boolean
 ---@field no_stderr? boolean
 ---@field on_exit? function
 ---@field keep? boolean
-
----@class OpenBufferOpts
----@field headers? boolean
----@field how? string
----@field open? boolean
 
 local function make_buffer(title)
   return Buffer:new(vim.api.nvim_create_buf(true, true), title)
@@ -45,18 +34,6 @@ local count = 0
 ---@param opts StartJobOpts
 ---@return Job
 function jobs.start_job(opts)
-  local bopen_opts = vim.tbl_extend("force", default_bopen_opts, type(opts.bopen) == "table" and opts.bopen or {})
-  local is_background_job = (function()
-    -- Even if args.errorlist is given, we use bopen to signify whether the job should run in
-    -- the background. You could say `:Crg ...` which would open the job output buffer *and*
-    -- write the results to a quickfix list.
-    if type(opts.bopen) == "table" then
-      return opts.bopen.open == false
-    end
-
-    return opts.bopen == false
-  end)()
-
   count = count + 1
   local title = "[Job #"
     .. count
@@ -81,18 +58,11 @@ function jobs.start_job(opts)
     args = opts.args or {},
     cwd = opts.cwd or vim.fn.getcwd(),
     on_start = function()
-      if bopen_opts.headers then
-        vim.schedule(function()
-          buffer:set_lines { title .. " started at " .. lib.now() }
-        end)
-      end
+      pcall(opts.on_start, buffer)
     end,
     ---@param self Job
     on_exit = function(self)
       vim.schedule(function()
-        if bopen_opts.headers then
-          buffer:append(title .. " ended at " .. lib.now())
-        end
         if opts.errorlist then
           local error_list = errorlist.from_job_output(opts.errorlist, self, {
             context = {},
@@ -136,8 +106,10 @@ function jobs.start_job(opts)
     })
   end
 
-  if is_background_job == false then
-    buffer:open(bopen_opts.how)
+  if type(opts.bopen) == "string" then
+    buffer:open(opts.bopen)
+  elseif opts.bopen == true then
+    buffer:open()
   end
 
   return job
