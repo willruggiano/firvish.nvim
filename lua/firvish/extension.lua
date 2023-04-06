@@ -80,13 +80,13 @@ function Extension.new(name, extension)
 end
 
 ---@package
-function Extension:open()
-  vim.cmd.buffer(self.buffer.bufnr)
+function Extension:open(how)
+  self.buffer:open(how)
 end
 
 ---@package
-function Extension:run(args)
-  self:open()
+function Extension:run(args, how)
+  self:open(how)
   if self.extension.update then
     self.extension:update(self.buffer, args)
   end

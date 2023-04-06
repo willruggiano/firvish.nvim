@@ -112,4 +112,32 @@ function Buffer:set_lines(lines, range, extmarks)
   return self
 end
 
+---Get the Buffer's |bufwinnr()|
+---@return number
+function Buffer:winnr()
+  return vim.fn.bufwinnr(self.bufnr)
+end
+
+---Open the buffer
+---@param how string? how to open the buffer, e.g. "edit", "split", "pedit", etc
+---@return Buffer
+function Buffer:open(how)
+  local winnr = self:winnr()
+  if winnr ~= -1 then
+    vim.cmd.wincmd { args = { "w" }, count = winnr }
+  else
+    if how ~= nil and how ~= "edit" then
+      if how == "pedit" then
+        vim.cmd.pedit(self:name())
+        vim.cmd.wincmd { args = { "w" }, count = self:winnr() }
+        return self
+      else
+        vim.cmd[how]()
+      end
+    end
+    vim.cmd.buffer(self.bufnr)
+  end
+  return self
+end
+
 return Buffer
