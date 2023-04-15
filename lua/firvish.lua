@@ -54,7 +54,7 @@ end
 function firvish.setup()
   vim.api.nvim_create_user_command("Firvish", function(args)
     local extension = firvish.extensions[args.fargs[1]]
-    extension:run(args)
+    extension(args)
   end, { bang = true, complete = complete, desc = "Firvish", nargs = "+" })
 end
 

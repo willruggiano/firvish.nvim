@@ -85,10 +85,10 @@ function Extension:open(how)
 end
 
 ---@package
-function Extension:run(args, how)
+function Extension:__call(args, how)
   self:open(how)
-  if self.extension.update then
-    self.extension:update(self.buffer, args)
+  if self.extension.execute then
+    self.extension:execute(self.buffer, args)
   end
 end
 
