@@ -80,15 +80,9 @@ function Extension.new(name, extension)
 end
 
 ---@package
-function Extension:open(how)
-  self.buffer:open(how)
-end
-
----@package
-function Extension:__call(args, how)
-  self:open(how)
+function Extension:__call(args)
   if self.extension.execute then
-    self.extension:execute(self.buffer, args)
+    self.extension:execute(self.buffer, args or {})
   end
 end
 
