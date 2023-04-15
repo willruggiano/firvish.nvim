@@ -53,6 +53,42 @@ function jobs.start_job(opts)
     end,
   })
 
+  local on_stdout = (function()
+    if opts.on_stdout == nil then
+      return function(self, data)
+        vim.schedule(function()
+          buffer:append(data)
+        end)
+      end
+    elseif opts.on_stdout == false then
+      return function() end
+    else
+      return function(self, data)
+        vim.schedule(function()
+          opts.on_stdout(self, data)
+        end)
+      end
+    end
+  end)()
+
+  local on_stderr = (function()
+    if opts.on_stderr == nil then
+      return function(self, data)
+        vim.schedule(function()
+          buffer:append(data)
+        end)
+      end
+    elseif opts.on_stderr == false then
+      return function() end
+    else
+      return function(self, data)
+        vim.schedule(function()
+          opts.on_stderr(self, data)
+        end)
+      end
+    end
+  end)()
+
   local job_opts = {
     command = opts.command,
     args = opts.args or {},
@@ -76,22 +112,8 @@ function jobs.start_job(opts)
         pcall(opts.on_exit, self, buffer)
       end)
     end,
-    ---@diagnostic disable-next-line: unused-local
-    on_stdout = function(self, data)
-      if opts.no_stdout ~= true then
-        vim.schedule(function()
-          buffer:append(data)
-        end)
-      end
-    end,
-    ---@diagnostic disable-next-line: unused-local
-    on_stderr = function(self, data)
-      if opts.no_stderr ~= true then
-        vim.schedule(function()
-          buffer:append(data)
-        end)
-      end
-    end,
+    on_stdout = on_stdout,
+    on_stderr = on_stderr,
   }
 
   local job = Job.new(count, job_opts)
