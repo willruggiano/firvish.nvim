@@ -1,5 +1,6 @@
 local jobs = require "firvish.lib.jobs"
 local Extension = require "firvish.extension"
+local Extension_t = require "firvish.extension_t"
 
 ---@mod firvish
 ---@brief [[
@@ -54,7 +55,10 @@ end
 function firvish.setup()
   vim.api.nvim_create_user_command("Firvish", function(args)
     local extension = firvish.extensions[args.fargs[1]]
-    extension(args)
+    extension:run {
+      args = vim.list_slice(args.fargs, 2),
+      invert = args.bang,
+    }
   end, { bang = true, complete = complete, desc = "Firvish", nargs = "+" })
 end
 
@@ -64,6 +68,12 @@ end
 ---invoked via the |:Firvish| user command.
 function firvish.register_extension(name, impl)
   local extension = Extension.new(name, impl)
+  firvish.extensions[name] = extension
+  return extension
+end
+
+function firvish.register_extension_t(name, type, opts)
+  local extension = Extension_t.new(name, type, opts)
   firvish.extensions[name] = extension
   return extension
 end
