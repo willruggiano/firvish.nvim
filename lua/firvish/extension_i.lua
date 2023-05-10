@@ -171,7 +171,7 @@ end
 
 function M:open(opts)
   local bufnr = self:buffer()
-  local how = opts.how
+  local how = opts.how or self.open_cmd
   local winnr = vim.fn.bufwinnr(bufnr)
   if winnr ~= -1 then
     vim.cmd.wincmd { args = { "w" }, count = winnr }
@@ -179,8 +179,8 @@ function M:open(opts)
   else
     if how ~= nil and how ~= "edit" then
       if how == "pedit" then
-        vim.cmd.pedit(self:name())
-        vim.cmd.wincmd { args = { "w" }, count = self:winnr() }
+        vim.cmd.pedit(vim.fn.bufname(bufnr))
+        vim.cmd.wincmd { args = { "w" }, count = vim.fn.bufwinnr(bufnr) }
         return self
       else
         vim.cmd[how]()
