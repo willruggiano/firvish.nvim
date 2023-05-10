@@ -47,42 +47,31 @@ function Extension_t.new(name, type, opts)
     opts = opts,
   }
 
-  --[[
-  if buffer.opt.buftype == "acwrite" then
-    vim.api.nvim_create_autocmd("BufWriteCmd", {
-      buffer = buffer.bufnr,
-      callback = function()
-        extension:on_buf_write_cmd(buffer)
-      end,
-    })
-
-    vim.api.nvim_create_autocmd("BufWritePost", {
-      buffer = buffer.bufnr,
-      callback = function()
-        extension:on_buf_write_post(buffer)
-      end,
-    })
-  end
-  --]]
-
   return setmetatable(obj, Extension_t)
 end
 
 function Extension_t:instance()
   if self.instance_ == nil then
     self.instance_ = Instance.new(self.type, self.opts)
-    self.instance_:on({ "BufDelete", "BufWipeout" }, function()
-      self.instance_ = nil
-    end)
+    self.instance_:on({ "BufWipeout" }, {
+      callback = function()
+        self.instance_ = nil
+      end,
+    })
   end
   return self.instance_
 end
 
 ---@package
 function Extension_t:run(opts)
+  opts = opts or {}
   -- Careful, opts.state is being passed around by reference.
-  self.opts.state.opts = opts.args or {}
-  self.opts.state.invert = opts.invert
+  if opts.args ~= nil then
+    self.opts.state.opts = opts.args
+  end
+  if opts.invert ~= nil then
+    self.opts.state.invert = opts.invert
+  end
   local instance = self:instance()
   instance:open(opts)
 end
