@@ -36,4 +36,21 @@ function lib.now()
   return os.date "%H:%M:%S"
 end
 
+function lib.open_buffer(bufnr, how)
+  local winnr = vim.fn.bufwinnr(bufnr)
+  if winnr ~= -1 then
+    vim.cmd.wincmd { args = { "w" }, count = winnr }
+  else
+    if how ~= nil and how ~= "edit" then
+      if how == "pedit" then
+        vim.cmd.pedit(vim.fn.bufname(bufnr))
+        return
+      else
+        vim.cmd[how]()
+      end
+    end
+    vim.cmd.buffer(bufnr)
+  end
+end
+
 return lib

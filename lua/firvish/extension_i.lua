@@ -45,6 +45,12 @@ function M:create_buf_()
     vim.api.nvim_buf_set_option(bufnr, name, value)
   end
 
+  for mode, mappings in pairs(self.keymap or {}) do
+    for lhs, opts in pairs(mappings) do
+      vim.keymap.set(mode, lhs, opts.callback, opts)
+    end
+  end
+
   self:on({ "BufEnter", "BufWinEnter" }, function()
     self.items = self.generator_(self.state_, self.items)
     local lines = {}
